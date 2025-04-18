@@ -6,7 +6,7 @@ import { storage } from '../../lib/firebaseAdmin';
 export const dynamic = 'force-dynamic';
 export async function GET() {
     // Provide the required configuration
-    const calendarId = process.env.GCAL_ID;
+    const calendarId = process.env.TEST_GCAL_ID;
 
     // Google calendar API settings
     const SCOPES = 'https://www.googleapis.com/auth/calendar';
