@@ -6,7 +6,7 @@ import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCcjn5vHPUuz7IPL6C8IH_qLBch4UyMGzQ",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY, // it seems we could expose this key according to Firebase docs but it seems like an unnecessary risk
     authDomain: "mottagningen-7063b.firebaseapp.com",
     databaseURL: "https://mottagningen-7063b.firebaseio.com",
     projectId: "mottagningen-7063b",
