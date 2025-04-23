@@ -4,11 +4,11 @@ Next.js web app created for the Chapter of Media Technology's reception of newly
 
 ## Prerequisites
 - Node.js v20+
-- `.env.local` file with environment variables located in root folder `/src/app/`
+- `.env.local` file with environment variables located in root folder
 
 ## Getting Started
 - Clone repo
-- Navigate to root folder `/src/app/`
+- Navigate to root folder
 - Install required dependencies by running `npm install`
 - Start development server by running `npm run dev`
 
