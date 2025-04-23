@@ -33,7 +33,7 @@ export default function Header() {
           height={32}
           className="mr-2 ml-4"
         />
-        MTGN24
+        MTGN25
       </Link>
       {user && (
         <>
