@@ -79,7 +79,7 @@ export default function Header() {
                     className="block text-center"
                     onClick={closeMenu}
                   >
-                    Galleri
+                    Bilder
                   </Link>
                 </div>
                 <div className="w-full px-4 py-2 hover:bg-gray-200">
@@ -154,7 +154,7 @@ export default function Header() {
               href="/event"
               className="text-gray-700 hover:text-blue-400 font-medium transition ease-in-out"
             >
-              Galleri
+              Bilder
             </Link>
             <Link
               href="/video"
