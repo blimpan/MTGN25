@@ -63,7 +63,7 @@ export async function GET(req: NextRequest, res: NextResponse) {
             const pictureUrl = id ? profilePicMap[id] : null;
             return {
                 ...user,
-                profilePic: pictureUrl || '/defaultprofile.png'// replace profilePic with the URL with promise
+                profilePic: pictureUrl || '/defaultprofile.svg'// replace profilePic with the URL with promise
             };
         });
         
