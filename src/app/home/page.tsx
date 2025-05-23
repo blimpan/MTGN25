@@ -140,6 +140,34 @@ export default function Home() {
     }, [user]);
 
     useEffect(() => {
+        async function fetchUsers() { // Fetch users and save them to sessionStorage to save time when loading other pages
+            
+            if (!user) { return } // If middleware.ts is working this should never executed
+
+            const token = await user.getIdToken();
+                try {
+                    const response = await fetch('/api/getUsers', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Fetched users from API')
+                        sessionStorage.setItem("users", JSON.stringify(data));
+                    } else {
+                        console.error('Failed to fetch users', response.status, response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error fetching users:', error);
+                }
+        }
+
+        fetchUsers();
+    }, [events]); // Start fetching users after events have been fetched
+
+    useEffect(() => {
         //console.log("Posts");
         //console.log(posts);
 
@@ -160,7 +188,7 @@ export default function Home() {
     }
 
     return (
-        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">
+        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars">
             <script src="https://apis.google.com/js/api.js" type="text/javascript"></script>
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl"> {/* EVENT MODULE */}
                 <div className="flex flex-row">

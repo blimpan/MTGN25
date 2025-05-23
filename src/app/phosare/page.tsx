@@ -31,25 +31,40 @@ export default function PhosarGrupper() {
     const [users, setUsers] = useState<{ phosGroup: string }[]>([]);
     useEffect(() => {
         const fetchUsers = async () => {
-            if (!user){ return <h1>Please login</h1>;} // If middleware.ts is working this should never be rendered
-            const token = await user.getIdToken();
-            try {
-                const response = await fetch('/api/getUsers', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setUsers(data);
-                } else {
-                    console.error('Failed to fetch users');
+            
+            if (!user) { return <h1>Please login</h1>; } // If middleware.ts is working this should never be rendered
+
+            if (sessionStorage.getItem("users")) {
+                const usersData = sessionStorage.getItem("users");
+                if (usersData) {
+                    const parsedData = JSON.parse(usersData);
+                    setUsers(parsedData);
+                    console.log('Loaded users from sessionStorage:')
+                    return;
                 }
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
+            } else { // If sessionStorage is empty, fetch from API
+            
+                const token = await user.getIdToken();
+                try {
+                    const response = await fetch('/api/getUsers', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        setUsers(data);
+                        console.log('Fetched users from API')
+                        sessionStorage.setItem("users", JSON.stringify(data));
+                    } else {
+                        console.error('Failed to fetch users');
+                    }
+                } catch (error) {
+                    console.error('Error fetching users:', error);
+                }
+            };
+        }
         fetchUsers();
     }, [user]);
 
@@ -153,7 +168,7 @@ export default function PhosarGrupper() {
 
     if (!user) { return <h1>Please login :|</h1>; } // If middleware.ts is working this should never be rendered
     return (
-        <main className={`min-h-screen transition-colors duration-300 ${rsaOpen ? 'bg-black' : 'bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]'}`}>
+        <main className={`min-h-screen transition-colors duration-300 ${rsaOpen ? 'bg-black' : 'bg-gradient-stars'}`}>
             <div>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
