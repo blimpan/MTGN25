@@ -33,3 +33,20 @@ body {
     text-wrap: balance;
   }
 }
+
+.bg-gradient-stars {
+  background-image:
+    linear-gradient(to bottom, #5C1E76 0%, #201461 86%, #151319 100%),
+    url('/starPattern.svg');
+  background-repeat: repeat;
+  background-blend-mode: overlay;
+}
+
+/* Use a different image for screens up to 768px wide (typical mobile breakpoint) */
+@media (max-width: 768px) {
+  .bg-gradient-stars {
+    background-image:
+      linear-gradient(to bottom, #5C1E76 0%, #201461 86%, #151319 100%),
+      url('/starPatternMobile.svg');
+  }
+}

@@ -93,11 +93,11 @@ export default function Header() {
                 </div>
                 <div className="w-full px-4 py-2 hover:bg-gray-200">
                   <Link
-                    href="/n0llan"
+                    href="/n0llegrupper"
                     className="block text-center"
                     onClick={closeMenu}
                   >
-                    nØllan
+                    nØllegrupper
                   </Link>
                 </div>
                 <div className="w-full px-4 py-2 hover:bg-gray-200">
@@ -163,10 +163,10 @@ export default function Header() {
               Video
             </Link>
             <Link
-              href="/n0llan"
+              href="/n0llegrupper"
               className="text-gray-700 hover:text-blue-400 font-medium transition ease-in-out"
             >
-              nØllan
+              nØllegrupper
             </Link>
             <Link
               href="/phosare"
