@@ -143,8 +143,19 @@ export default function Home() {
         async function fetchUsers() { // Fetch users and save them to sessionStorage to save time when loading other pages
             
             if (!user) { return } // If middleware.ts is working this should never executed
+            
+            if (sessionStorage.getItem("users")) {
+                const usersData = sessionStorage.getItem("users");
 
-            const token = await user.getIdToken();
+                if (usersData) {
+                    console.log('User data already in sessionStorage')
+                    return;
+                }
+
+            } else { // If user data in sessionStorage is empty, fetch from API
+
+                const token = await user.getIdToken();
+                
                 try {
                     const response = await fetch('/api/getUsers', {
                         method: 'GET',
@@ -152,6 +163,7 @@ export default function Home() {
                             'Authorization': `Bearer ${token}`
                         }
                     });
+                    
                     if (response.ok) {
                         const data = await response.json();
                         console.log('Fetched users from API')
@@ -162,8 +174,8 @@ export default function Home() {
                 } catch (error) {
                     console.error('Error fetching users:', error);
                 }
+            }
         }
-
         fetchUsers();
     }, [events]); // Start fetching users after events have been fetched
 
@@ -188,11 +200,11 @@ export default function Home() {
     }
 
     return (
-        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars">
+        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars animate-fadeIn">
             <script src="https://apis.google.com/js/api.js" type="text/javascript"></script>
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl"> {/* EVENT MODULE */}
                 <div className="flex flex-row">
-                    <p className="font-semibold text-lg text-white drop-shadow-xl sm:text-2xl ml-1">Nästa event</p>
+                    <p className="font-semibold text-lg text-amber-50 drop-shadow-xl sm:text-2xl ml-1">Nästa event</p>
                     <p className="text-2xl drop-shadow-md sm:text-3xl ml-1">🥳</p>
                 </div>
                 <div className="flex flex-col space-y-5">
@@ -213,7 +225,7 @@ export default function Home() {
             </div>
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl mb-5"> {/* EVENT MODULE */}
             <div className="flex flex-row">
-                    <p className="font-semibold text-lg text-white drop-shadow-xl sm:text-2xl pl-1">Senaste anslag</p>
+                    <p className="font-semibold text-lg text-amber-50 drop-shadow-xl sm:text-2xl pl-1">Senaste anslag</p>
                     <p className="text-2xl drop-shadow-md sm:text-3xl ml-1">📣</p>
                 </div>
                 
