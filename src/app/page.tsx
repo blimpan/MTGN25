@@ -65,8 +65,8 @@ const Home: React.FC = () => {
         <TemplateHome />
       </div>
 
-      <div className="absolute top-48 sm:top-80 inset-0 z-10 flex flex-col items-center rounded-t-2xl grow pt-10 sm:pt-16 space-y-4 border border-gray-50 bg-contain bg-repeat bg-[url('/white_plant_pattern.webp')] animate-fadeInFromBottom"> {/* Bottom half */}
-        <p className='text-xl sm:text-2xl font-semibold bg-gradient-to-t to-[#A5CACE] from-[#4FC0A0] bg-clip-text text-transparent drop-shadow-sm'>Välkommen till Mottagningen!</p>
+      <div className="absolute top-48 sm:top-80 inset-0 z-10 flex flex-col items-center rounded-t-2xl grow pt-10 sm:pt-16 space-y-4 border border-amber-50 bg-contain bg-repeat bg-[url('/login-bg-pattern.webp')] animate-fadeInFromBottom"> {/* Bottom half */}
+        <p className='text-xl sm:text-2xl font-semibold text-amber-50'>Välkommen till Mottagningen!</p>
         <form onSubmit={handleSignIn} className='flex flex-col space-y-2 pt-4'>
           <input
             className="border border-gray-300 rounded-lg p-2 m-1"
@@ -85,7 +85,7 @@ const Home: React.FC = () => {
             required
           />
           <div className="flex justify-center pt-4">
-            <button type="submit" disabled={isDisabled} className="disabled:opacity-50 disabled:translate-y-1 drop-shadow-homeShadow w-2/3 text-white rounded-full py-3 bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">Logga in</button>
+            <button type="submit" disabled={isDisabled} className="disabled:opacity-50 disabled:translate-y-1 drop-shadow-homeShadow w-2/3 text-amber-50 rounded-full py-3 bg-lighter-purple border shadow-pink-glow border-amber-50">Logga in</button>
           </div>
         </form>
       </div>
