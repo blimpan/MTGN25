@@ -27,7 +27,6 @@ export default function RootLayout({
         <body className={"max-w-full " + rubik.className}>
           <Header />
           {children}
-          <FloatingButton/>
           <Footer/>
         </body>
       </html>

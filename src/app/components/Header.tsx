@@ -60,7 +60,7 @@ export default function Header() {
           >
             <div
               className={`transition-all delay-150 duration-200 overflow-hidden w-full ${
-                isMenuOpen ? "max-h-[22rem]" : "max-h-0"
+                isMenuOpen ? "max-h-[26rem]" : "max-h-0"
               }`}
             >
               <div className="flex flex-col">
@@ -136,6 +136,15 @@ export default function Header() {
                     Namn Quiz
                   </Link>
                 </div>
+                <div className="w-full px-4 py-2 hover:bg-gray-200">
+                  <Link  
+                    href="https://forms.gle/zDnjmj2kjuQdgNFd9"
+                    className="block text-center "
+                    onClick={closeMenu}
+                    >
+                      På-Hjärtat-Lådan 
+                  </Link>
+                </div>
                 <div className="flex flex-col w-full px-4 py-2 mt-2 hover:bg-gray-200">
                   <LogoutButton onClose={closeMenu} />
                 </div>
@@ -192,6 +201,13 @@ export default function Header() {
             >
               Namn Quiz
             </Link>
+            <Link  
+              href="https://forms.gle/zDnjmj2kjuQdgNFd9"
+              className="text-gray-700 hover:text-blue-400 font-medium transition ease-in-out"
+              target="_blank"
+              >
+                På-Hjärtat-Lådan 
+              </Link>
             <LogoutButton />
           </div>
         </>
