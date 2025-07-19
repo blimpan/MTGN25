@@ -10,8 +10,8 @@ const inter = Inter({ subsets: ["latin"] });
 const rubik = Rubik({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MTGN24",
-  description: "Official website for Mottagningen 2024",
+  title: "MTGN25",
+  description: "Mottagningen 2025",
 };
 
 export default function RootLayout({
