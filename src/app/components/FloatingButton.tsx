@@ -1,3 +1,6 @@
+// This component is depricated as of MTGN 2025, since the link was moved to 
+// the navbar instead. 2025-06-11
+
 import React from 'react';
 import Link from 'next/link';
 

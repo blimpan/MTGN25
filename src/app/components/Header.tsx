@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: "/phosare", label: "Phösare", target: "_self" },
   { href: "/blandaren", label: "Bländare", target: "_self" },
   { href: "/quiz", label: "Namn Quiz", target: "_self" },
+  { href: "https://forms.gle/zDnjmj2kjuQdgNFd9", label: "På-Hjärtat-Lådan", target: "_blank" }
 ];
 
 export default function Header() {
