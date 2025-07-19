@@ -5,7 +5,7 @@ import EventCard from "./EventCard";
 export default function Home() {
     
     return (
-        <main className="flex min-h-screen min-w-72 flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">
+        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars animate-fadeIn">
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl"> {/* EVENT MODULE */}
                 <div className="flex flex-row">
                     <p className="font-semibold text-lg text-white drop-shadow-xl sm:text-2xl ml-1">Nästa event</p>

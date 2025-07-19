@@ -24,9 +24,12 @@ export default function RootLayout({
     <AuthProvider>
       <Analytics/>
       <html lang="en">
-        <body className={"max-w-full " + rubik.className}>
+        <body className={"max-w-full bg-gradient-stars " + rubik.className}>
           <Header />
-          {children}
+          <div className="pt-16"> {/* Push everything else down so they dont render behind navbar unintentionally */}
+            {children}
+          </div>
+          <FloatingButton/>
           <Footer/>
         </body>
       </html>
