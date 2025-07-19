@@ -9,7 +9,7 @@ import { set } from 'firebase/database';
 import { get } from 'http';
 
 /* Admin page for updating user information, posting new posts and more */
-const UpdateUser = () => {
+const AdminPanel = () => {
   const [uid, setUid] = useState('');
   // for display name
   const [displayName, setDisplayName] = useState('');
@@ -268,10 +268,6 @@ const UpdateUser = () => {
     }
   };
 
-  if (loading) {
-    return <h1>Loading...</h1>;
-  }
-
   if (!user) {
     return <h1>Please login</h1>; // If middleware.ts is working this should never be rendered
   } else if (!isAdmin) {
@@ -279,7 +275,7 @@ const UpdateUser = () => {
   }
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0] p-10 space-y-10">
+    <main className="flex flex-col items-center min-h-screen bg-gradient-stars p-10 space-y-10">
         {/* Upload event picture */}
         <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-6 space-y-6">
           <form onSubmit={handleUploadPic} className="space-y-4">
@@ -462,4 +458,4 @@ const UpdateUser = () => {
   );
 };
 
-export default UpdateUser;
+export default AdminPanel;

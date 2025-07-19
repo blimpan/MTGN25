@@ -28,7 +28,7 @@ export default function EmojiModal(params:any) {
                         </div>
                     ))}
                     <div className="flex justify-center pt-2">
-                        <button className="drop-shadow-homeShadow w-2/3 text-white rounded-full py-2 bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]" onClick={params.onCloseClick}>Stäng</button>
+                        <button className="drop-shadow-homeShadow w-2/3 text-white rounded-full py-2 bg-darker-purple" onClick={params.onCloseClick}>Stäng</button>
                     </div>
                 </div>
             </div>
