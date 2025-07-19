@@ -5,7 +5,6 @@ import Header from "./components/Header";
 import { AuthProvider } from "./components/useAuth";
 import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/react"
-import FloatingButton from "./components/FloatingButton";
 
 const inter = Inter({ subsets: ["latin"] });
 const rubik = Rubik({ subsets: ["latin"] });
@@ -29,7 +28,6 @@ export default function RootLayout({
           <div className="pt-16"> {/* Push everything else down so they dont render behind navbar unintentionally */}
             {children}
           </div>
-          <FloatingButton/>
           <Footer/>
         </body>
       </html>
