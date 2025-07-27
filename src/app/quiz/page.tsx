@@ -146,7 +146,7 @@ export default function N0llanGrupper() {
             userType === "n0llan" ? "border-light-yellow border" : ""
           } bg-almost-black text-white font-semibold rounded-lg shadow-pink-glow`}
         >
-          N0llan
+          nØllan
         </button>
       </div>
 
