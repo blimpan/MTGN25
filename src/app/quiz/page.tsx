@@ -59,6 +59,9 @@ export default function N0llanGrupper() {
   const setNewQuestion = (usersArray: typeof users) => {
     // Filter users based on the selected type
     const filtered = usersArray.filter((user) => {
+      if (user.profilePic === '/defaultprofile.svg') {
+        return false
+      }
       if (userType === "phosare") {
         return user.phosGroup !== undefined;
       } else if (userType === "n0llan") {
