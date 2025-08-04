@@ -99,7 +99,26 @@ export default function N0llanGrupper() {
       }, 1500);
     } else {
       setScore(0); // Reset score for incorrect guess
+      if (message == "Fel, försök igen 😭💔") {
+        // Andra felmeddelandet
+        setMessage("Fel, du försökte igen, försök igen igen 🤣");
+      } 
+      else if (message == "Fel, du försökte igen, försök igen igen 🤣") {
+        // Tredje felmeddelandet
+        setMessage("Bror... det finns bara ett alternativ kvar 🤡🫢 (eller har du bara lallat och tryckt på samma knapp flera gånger? 🤪) (EHDBLOTPSKFG?)");
+      } 
+      else if (message == "Bror... det finns bara ett alternativ kvar 🤡🫢 (eller har du bara lallat och tryckt på samma knapp flera gånger? 🤪) (EHDBLOTPSKFG?)") {
+        //Förhoppningsvis sista felmeddelandet (nope)
+        setMessage("Rött! 🙂‍↔️🙅‍♂️");
+      }
+      else if (message == "Rött! 🙂‍↔️🙅‍♂️") {
+        //Förhoppningsvis sista felmeddelandet
+        setMessage("Det var en gång två webbisar som hette Eddie och Neo from the hit blockbuster motion picture The Matrix, made by the Wachowskis in 1999, starring Keanu Reeves. Det var en solig dag och webbisarna satt inburade och skulle skriva sin kod. Istället för att fixa buggen som webbgruppsledaren Loke hade bett om spenderade Neo och Eddie istället mer än en timme på dessa felmeddelanden. OBS: Loke om du läser detta: ples don't be mad, vi fixade faktiskt typ tre issues och du har ändå inte fixat klart pull requestsen. Jk jk unless? 👁️👃👁️ och om nØllan läser det här får nØllan gärna kontakta oss (nØllan kan till exempel säga en fett cool hemlig fras till oss som typ 'Jag hade rött!', vi har 6st pins att ge ut) och ignorera alla buggar snälla🥺🙏❤️ Vi tror okså att nØllan måste öva mer på namn");
+      }
+      else
+      {  // Första felmeddelandet
       setMessage("Fel, försök igen 😭💔");
+      }
       setColor("#EF5D60");
     }
   };
