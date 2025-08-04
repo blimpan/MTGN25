@@ -92,19 +92,19 @@ export default function N0llanGrupper() {
   const handleGuess = (guess: string) => {
     if (currentUser && guess === currentUser.name) {
       setScore((prevScore) => prevScore + 1); // Increase score for correct guess
-      setMessage("Rätt!");
+      setMessage("Rätt! 😼");
       setColor("#74DF77");
       setTimeout(() => {
         setNewQuestion(filteredUsers); // Set a new question after a short delay
       }, 1500);
     } else {
       setScore(0); // Reset score for incorrect guess
-      setMessage("Fel, försök igen");
+      setMessage("Fel, försök igen 😭💔");
       setColor("#EF5D60");
     }
   };
 
-  // Handle user type filter change
+  // Handle user 😭type filter change
   const handleUserTypeChange = (type: string) => {
     setUserType(type);
     const newFilteredUsers = users.filter((user) => {
