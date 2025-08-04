@@ -16,12 +16,8 @@ function Flipbook({ src }: { src: string }) {
     const pageHeight = pageWidth * aspectRatio;
     const [transform, setTransform] = useState<any>(0); // Initial transform to center the flipbook
 
-    // Set the worker source for PDF.js
-    // This is mandatory in order to render the PDF correctly
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url
-    ).toString();
+    // Set the worker source for PDF.js using CDN for Next.js/Vercel compatibility
+    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
@@ -39,7 +35,10 @@ function Flipbook({ src }: { src: string }) {
     // This function is called when the page animation ends, to determine if the current page is the first or last
     // and adjust the transform accordingly
     const checkCurrentPage = (e: any) => {
-
+        if (numPages == null) {
+            setTransform(0);
+            return;
+        }
         if (e.data === 0) {
             setTransform(-pageWidth / 4);
         } else if (e.data === numPages - 1) {
