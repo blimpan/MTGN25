@@ -553,6 +553,7 @@ const AdminPanel = () => {
               onChange={(e) => setEventName(e.target.value)}
               placeholder="Enter event name"
               className="border border-gray-300 rounded-lg p-2 w-full"
+              autoComplete="off"
               required
             />
           </div>
@@ -566,6 +567,7 @@ const AdminPanel = () => {
               onChange={(e) => setEventDriveUrl(e.target.value)}
               placeholder="https://drive.google.com/drive/folders/..."
               className="border border-gray-300 rounded-lg p-2 w-full"
+              autoComplete="off"
               required
             />
             <p className="text-xs text-gray-500">
@@ -688,6 +690,7 @@ const AdminPanel = () => {
                           value={editEventName}
                           onChange={(e) => setEditEventName(e.target.value)}
                           className="border border-gray-300 rounded-lg p-2 w-full text-sm"
+                          autoComplete="off"
                           required
                         />
                       </div>
@@ -699,6 +702,7 @@ const AdminPanel = () => {
                           value={editEventDriveUrl}
                           onChange={(e) => setEditEventDriveUrl(e.target.value)}
                           className="border border-gray-300 rounded-lg p-2 w-full text-sm"
+                          autoComplete="off"
                           required
                         />
                       </div>
