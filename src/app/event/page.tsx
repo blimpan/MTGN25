@@ -73,7 +73,7 @@ export default function EventGallery() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0] flex items-center justify-center">
+      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
         <h1 className="text-white text-2xl">Please log in to view events</h1>
       </main>
     );
@@ -81,7 +81,7 @@ export default function EventGallery() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0] flex items-center justify-center">
+      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
         <h1 className="text-white text-2xl">Loading events...</h1>
       </main>
     );
@@ -89,7 +89,7 @@ export default function EventGallery() {
 
   if (error) {
     return (
-      <main className="min-h-screen bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0] flex items-center justify-center">
+      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
         <h1 className="text-white text-2xl">{error}</h1>
       </main>
     );
