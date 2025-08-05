@@ -2,13 +2,13 @@ import LinearProgress from '@mui/material/LinearProgress';
 import React, { useEffect, useState } from 'react';
 import { Document, Page as ReactPdfPage, pdfjs } from 'react-pdf';
 
-const Page = React.forwardRef(({ pageNumber, width }: { pageNumber: number, width: number }, ref) => {
-    return (
+const Page = React.forwardRef<HTMLDivElement, { pageNumber: number; width: number }>(
+    ({ pageNumber, width }, ref) => (
         <div ref={ref}>
             <ReactPdfPage pageNumber={pageNumber} width={width} />
         </div>
-    );
-});
+    )
+);
 
 function MobilePDFViewer({ src }: { src: string }) {
     const [numPages, setNumPages] = useState<number>(0);

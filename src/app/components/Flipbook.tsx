@@ -64,12 +64,31 @@ function Flipbook({ src }: { src: string }) {
                     <HTMLFlipBook
                         width={pageWidth}
                         height={pageHeight}
+                        maxHeight={pageHeight}
+                        minHeight={pageHeight}
+                        maxWidth={pageWidth}
+                        minWidth={pageWidth}
                         maxShadowOpacity={0.5}
                         drawShadow={true}
                         showCover={true}
                         size="stretch"
                         style={{ width: "100%", height: "auto" }}
                         onFlip={checkCurrentPage}
+                        className="flipbook"
+                        startPage={0}
+                        flippingTime={1000}
+                        usePortrait={false}
+                        mobileScrollSupport={true}
+                        clickEventForward={true}
+                        useMouseEvents={true}
+                        renderOnlyPageLengthChange={false}
+                        disableFlipByClick={false}
+                        onChangeOrientation={() => {}}
+                        onChangeState={() => {}}
+                        startZIndex={0}
+                        autoSize={true}
+                        swipeDistance={30}
+                        showPageCorners={true}
                     > {/* The actual flipbook component, which handles the flip animation and the pages */}
                         {Array.from(new Array(numPages), (el, index) => (
 

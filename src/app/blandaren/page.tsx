@@ -1,7 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Flipbook from "../components/Flipbook";
-import MobilePDFViewer from "../components/MobilePDFViewer";
+import dynamic from "next/dynamic";
+
+const Flipbook = dynamic(() => import("../components/Flipbook"), { ssr: false });
+const MobilePDFViewer = dynamic(() => import("../components/MobilePDFViewer"), { ssr: false });
 import useAuth from "../components/useAuth";
 
 
