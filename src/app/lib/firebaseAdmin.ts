@@ -17,6 +17,7 @@ if (!admin.apps.length) {
       clientEmail,
       privateKey,
     }),
+    storageBucket: `${projectId}.appspot.com`,
   });
 }
 

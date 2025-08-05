@@ -32,3 +32,13 @@ export interface Post {
   description: string;
   createdAt: Date;
 }
+
+// event type for google drive based events
+export interface Event {
+  id: string;
+  name: string;
+  driveUrl: string;
+  thumbnailUrl: string;
+  eventDate: Date;
+  createdAt: Date;
+}
