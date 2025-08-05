@@ -7,7 +7,13 @@ const nextConfig = {
           net: false, // This needs to be set to false in order for the API route getCalendarEvents to work
           tls: false,
         };
-    
+
+        // Add rule to handle .mjs files (for pdfjs-dist compatibility)
+        config.module.rules.push({
+          test: /\.mjs$/,
+          type: 'javascript/auto',
+        });
+
         return config;
       },
       // This is required to allow nextjs to use the images from firebase storage using the nextjs14 component Images

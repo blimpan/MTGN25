@@ -1,33 +1,46 @@
-"use client"; 
+"use client";
 import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
+const Flipbook = dynamic(() => import("../components/Flipbook"), { ssr: false });
+const MobilePDFViewer = dynamic(() => import("../components/MobilePDFViewer"), { ssr: false });
 import useAuth from "../components/useAuth";
+
 
 const Bandaren = () => {
   const [src, setSrc] = useState("");
   const { user } = useAuth();
   const [blandare, setBlandare] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-      const fetchBlandare = async () => {
-          if (!user){ return <h1>Please login</h1>;} // If middleware.ts is working this should never be rendered
-          const token = await user.getIdToken();
-          try {
-              const response = await fetch('/api/getBlandare', {
-                  method: 'GET',
-                  headers: {
-                      'Authorization': `Bearer ${token}`
-                  }
-              });
-              if (response.ok) {
-                  const data = await response.json();
-                  setBlandare(data[0].links);
-              } else {
-                  console.error('Failed to fetch blandare');
-              }
-          } catch (error) {
-              console.error('Error fetching blandare:', error);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const fetchBlandare = async () => {
+      if (!user) return;
+      const token = await user.getIdToken();
+      try {
+        const response = await fetch('/api/getBlandare', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        };
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setBlandare(data);
+        } else {
+          console.error('Failed to fetch blandare');
+        }
+      } catch (error) {
+        console.error('Error fetching blandare:', error);
+      }
+    };
     fetchBlandare();
   }, [user]);
 
@@ -35,7 +48,7 @@ const Bandaren = () => {
 
   return (
     <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">
-      <div className="flex flex-wrap justify-center">
+      <div className="flex flex-wrap justify-center mb-10">
         {blandare.map((item, index) => (
           <button
             key={index}
@@ -46,7 +59,11 @@ const Bandaren = () => {
           </button>
         ))}
       </div>
-      <iframe src={src} width="100%" height="700px" allow="autoplay"></iframe>
+      {src && (
+        isMobile
+          ? <MobilePDFViewer src={src} /> //The mobile view of the Bländare, determined by screen size, no flipbook
+          : <Flipbook src={src} /> // The desktop view of the Bländare, with flipbook functionality
+      )}
     </main>
   );
 };

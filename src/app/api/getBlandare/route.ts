@@ -1,25 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, auth, storage } from '../../lib/firebaseAdmin'; 
+import { auth, storage } from '../../lib/firebaseAdmin';
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return NextResponse.json({ error: 'No token provided' }, { status: 401 });
+        return NextResponse.json({ error: 'No token provided' }, { status: 401 });
     }
-    // extract the user from the auth token
     const idToken = authHeader.split('Bearer ')[1];
     try {
         const decodedToken = await auth.verifyIdToken(idToken);
-        // if the token is invalid, return an Unauthorized response
         if (!decodedToken) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        /* GET ALL GOOGLE DRIVE LINKS FROM BLANDARE COLLETION FROM FIREBASE */
-        const snapshot = await db.collection('blandare').get();
-        let blandare = snapshot.docs.map(doc => ({ ...doc.data() }));
-        
-        return NextResponse.json( blandare );
+        // Fetch all files from the 'blandare' folder in Firebase Storage
+        const bucket = storage.bucket("mottagningen-7063b.appspot.com");
+        const options = { prefix: 'blandare/' };
+        const [files] = await bucket.getFiles(options);
+
+        // Generate signed URLs for each file
+        const fileInfos = await Promise.all(
+            files
+                .filter(file => file.name.endsWith('.pdf')) // Only PDFs
+                .map(async (file) => {
+                    const [url] = await file.getSignedUrl({
+                        action: 'read',
+                        expires: Date.now() + 60 * 60 * 1000, // 1 hour
+                    });
+                    return url;
+                })
+        );
+        return NextResponse.json(fileInfos);
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
