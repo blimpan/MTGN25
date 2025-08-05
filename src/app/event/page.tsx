@@ -194,7 +194,7 @@ export default function EventGallery() {
                                 {/* Left black section with "Se bilder" */}
                                 <div className="bg-black flex items-center justify-center flex-1">
                                   <div className="flex items-center text-white">
-                                    <span className="text-lg md:text-xl lg:text-2xl font-normal mr-3 md:mr-4" style={{textShadow: '0 0 15px rgba(242, 136, 198, 0.8), 0 0 30px rgba(242, 136, 198, 0.4)'}}>Se bilder</span>
+                                    <span className="text-lg md:text-xl lg:text-2xl font-normal mr-3 md:mr-4 text-shadow-pink-glow">Se bilder</span>
                                     <Image
                                       src="/photos icon.svg"
                                       alt="Photos icon"

@@ -42,6 +42,14 @@ body {
   background-blend-mode: overlay;
 }
 
+.text-shadow-pink-glow {
+text-shadow: 
+  0 0 10px rgba(242, 136, 198, 1),
+  0 0 20px rgba(242, 136, 198, 0.8),
+  0 0 40px rgba(242, 136, 198, 0.6),
+  0 0 60px rgba(242, 136, 198, 0.4);
+}
+
 /* Use a different image for screens up to 768px wide (typical mobile breakpoint) */
 @media (max-width: 768px) {
   .bg-gradient-stars {

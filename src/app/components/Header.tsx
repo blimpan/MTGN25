@@ -8,7 +8,6 @@ import useAuth from "./useAuth";
 const NAV_LINKS = [
   { href: "/profil", label: "Profil", target: "_self" },
   { href: "/event", label: "Bilder", target: "_self" },
-  { href: "/video", label: "Video", target: "_self" },
   { href: "/n0llegrupper", label: "nØllegrupper", target: "_self" },
   { href: "/phosare", label: "Phösare", target: "_self" },
   { href: "/blandaren", label: "Bländare", target: "_self" },
