@@ -18,7 +18,7 @@ export default function Footer() {
                     <Link href="https://instagram.com/mastarrchef" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">ARR</Link>
                     <Link href="https://instagram.com/phlexgo" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">PHLEX</Link>
                     <Link href="https://instagram.com/ofverphoseriet" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">ÖPH</Link>
-                    <Link href="https://www.instagram.com/vraqueogram/" className="sm:mr-3 px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">VRAQUE</Link>
+                    <Link href="https://instagram.com/vraqueogram/" className="sm:mr-3 px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">VRAQUE</Link>
                     <div className="w-full md:w-auto"></div>
                     <Image className="lg:ml-2 mt-2 pr-2 mb-2" src="/yt-logo.svg" alt="Youtube Logo" width={35} height={35}/>
                     <Link href="https://www.youtube.com/@FilmnamndenMedieteknik" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">Filmprojektet | Filmnämnden</Link>
