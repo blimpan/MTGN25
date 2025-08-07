@@ -50,6 +50,11 @@ const AdminPanel = () => {
   const [editEventMinute, setEditEventMinute] = useState('');
 
 
+  // Bulk user upload
+  const [bulkUsersFile, setBulkUsersFile] = useState<File | null>(null);
+  const [bulkUsersError, setBulkUsersError] = useState('');
+  const [bulkUsersSuccess, setBulkUsersSuccess] = useState('');
+
   // check if user is admin
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -89,6 +94,70 @@ const AdminPanel = () => {
 
     checkAdminStatus();
   }, []); // run only once
+
+
+   // Bulk users file change handler
+  const handleBulkUsersFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setBulkUsersFile(e.target.files[0]);
+    }
+  };
+
+  // Bulk users upload handler
+  const handleBulkUsersUpload = async (event: FormEvent) => {
+    event.preventDefault();
+    setBulkUsersError('');
+    setBulkUsersSuccess('');
+    if (!bulkUsersFile) {
+      setBulkUsersError('Please select a JSON file.');
+      return;
+    }
+    try {
+      const text = await bulkUsersFile.text();
+      let users;
+      try {
+        users = JSON.parse(text);
+      } catch (err) {
+        setBulkUsersError('Invalid JSON format.');
+        return;
+      }
+      if (!Array.isArray(users)) {
+        setBulkUsersError('JSON must be an array of user objects.');
+        return;
+      }
+      if (!user) {
+        setBulkUsersError('User not authenticated.');
+        return;
+      }
+      const token = await user.getIdToken();
+      const response = await fetch('/api/bulkCreateUsers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ users }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setBulkUsersError(data.error || 'Failed to create users.');
+      } else {
+        // Check for per-user errors in results
+        const errorResults = (data.results || []).filter((r: any) => r.status === 'error');
+        if (errorResults.length > 0) {
+          setBulkUsersError(
+            'Some users failed to be created:\n' +
+            errorResults.map((r: any) => `${r.identifier}: ${r.error}`).join('\n')
+          );
+          setBulkUsersSuccess('');
+        } else {
+          setBulkUsersSuccess(data.message || 'Users created successfully!');
+        }
+      }
+    } catch (err) {
+      setBulkUsersError((err as Error).message);
+    }
+  };
 
   // NEW: fetch events for management
   const fetchEvents = async () => {
@@ -931,6 +1000,26 @@ const AdminPanel = () => {
             />
           </div>
           <button type="submit" className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200">Set Admin</button>
+        </form>
+      </div>
+      {/* Bulk User Upload */}
+      <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-6 space-y-6">
+        <form onSubmit={handleBulkUsersUpload} className="space-y-4">
+          <h1 className="mb-3 text-2xl font-semibold text-center">Bulk Upload Users (JSON)</h1>
+          <div className="space-y-2">
+            <label htmlFor="bulkUsersFile" className="block text-gray-700 font-semibold">JSON File</label>
+            <input
+              type="file"
+              id="bulkUsersFile"
+              accept="application/json"
+              onChange={handleBulkUsersFileChange}
+              className="border border-gray-300 rounded-lg p-2 w-full"
+              required
+            />
+          </div>
+          <button type="submit" className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200">Upload Users</button>
+          {bulkUsersError && <p className="text-red-500">{bulkUsersError}</p>}
+          {bulkUsersSuccess && <p className="text-green-500">{bulkUsersSuccess}</p>}
         </form>
       </div>
     </main>
