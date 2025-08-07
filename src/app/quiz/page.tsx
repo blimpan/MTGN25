@@ -21,6 +21,7 @@ export default function N0llanGrupper() {
   const [options, setOptions] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
   const [color, setColor] = useState<string>("white")
+  const [disable, setDisable] = useState<boolean>(false)
   const [score, setScore] = useState<number>(0);
   const [userType, setUserType] = useState<string>("all"); // State for user type filter
 
@@ -62,14 +63,9 @@ export default function N0llanGrupper() {
       if (user.profilePic === '/defaultprofile.svg') {
         return false
       }
-      if (userType === "phosare") {
-        return user.phosGroup !== undefined;
-      } else if (userType === "n0llan") {
-        return user.phosGroup === undefined;
-      }
       return true; // For "all", return all users
     });
-
+    
     if (filtered.length > 0) {
       const randomUser = filtered[Math.floor(Math.random() * filtered.length)];
       setCurrentUser(randomUser);
@@ -94,8 +90,10 @@ export default function N0llanGrupper() {
       setScore((prevScore) => prevScore + 1); // Increase score for correct guess
       setMessage("Rätt! 😼");
       setColor("#74DF77");
+      setDisable(true);
       setTimeout(() => {
         setNewQuestion(filteredUsers); // Set a new question after a short delay
+        setDisable(false);
       }, 1500);
     } else {
       setScore(0); // Reset score for incorrect guess
@@ -127,6 +125,9 @@ export default function N0llanGrupper() {
   const handleUserTypeChange = (type: string) => {
     setUserType(type);
     const newFilteredUsers = users.filter((user) => {
+      if (user.profilePic === '/defaultprofile.svg') {
+        return false
+      }
       if (type === "phosare") {
         return user.phosGroup !== undefined;
       } else if (type === "n0llan") {
@@ -186,7 +187,7 @@ export default function N0llanGrupper() {
       <div className="mt-6 grid grid-cols-2 gap-4">
         {options.length > 0 ? (
           options.map((option, index) => (
-            <button
+            <button disabled={disable}
               key={index}
               onClick={() => handleGuess(option)}
               className="px-4 py-2 bg-almost-black text-amber-50 font-semibold rounded-lg shadow-pink-glow hover: bg-almost-black"
