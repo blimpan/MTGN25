@@ -109,7 +109,7 @@ export default function N0llegrupper() {
             
                 <button
                     onClick={() => toggleGroupBool(index)}
-                    className="relative bg-cover bg-center bg-almost-black text-white font-medium text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap hover:bg-gray-900 shadow-pink-glow"
+                    className="relative bg-cover bg-center bg-almost-black shadow-pink-glow text-white font-medium text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap hover:bg-gray-900 shadow-pink-glow"
                     style={{ backgroundImage: `url('/n0llegrupper-images/${group}-Cover.webp')` }}
                     >
                     &nbsp;
@@ -137,19 +137,19 @@ export default function N0llegrupper() {
                             ))}
 
                         </div>
-                        <div className="grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 mt-4">
+                        <div className="grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 mt-4 ">
                             {kphUsers.map((user, index) => (
-                                <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200">
+                                <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-[#F7F7F3] shadow-pink-glow p-2 rounded-lg drop-shadow hover:bg-[#FDFDFD]">
                                 <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
-                                <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
+                                <h1 className="text-black text-xs font-medium pt-2 whitespace-nowrap">{user.name}</h1>
                             </button>
                             ))}
                         </div>
                         <div className="grid grid-cols-3 gap-4 2xl:mx-48">
                             {phosUsers.map((user, index) => (
-                                <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200">
+                                <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-[#F7F7F3] p-2 rounded-lg drop-shadow shadow-pink-glow hover:bg-[#FDFDFD]">
                                     <img src={user.profilePic} alt={`User ${index + 1}`} className="w-full aspect-square rounded-lg" />
-                                    <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
+                                    <h1 className="text-black text-xs font-medium pt-2 whitespace-nowrap">{user.name}</h1>
                                 </button>
                             ))}
                         </div>
@@ -166,7 +166,7 @@ export default function N0llegrupper() {
             <div>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
-                    <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
+                    <div className="bg-[#F7F7F3] shadow-pink-glow p-8 rounded-lg shadow-lg hover:bg-[#FDFDFD]">
                         <img src={popUpPic} className="w-full aspect-square rounded-lg" />
                         <h1 className="text-black text-xl font-bold p-1">{popUpName}</h1>
                         <h1 className="text-black">Fun fact: {popUpFunFact}</h1>
