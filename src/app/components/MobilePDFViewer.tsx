@@ -1,16 +1,10 @@
-import LinearProgress from '@mui/material/LinearProgress';
 import React, { useEffect, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
 
 function MobilePDFViewer({ images }: { images: string[] }) {
     const [numPages, setNumPages] = useState<number>(0);
     const [width, setWidth] = useState<number>(window.innerWidth - 32);
     const [allLoaded, setAllLoaded] = useState(false);
     // Mandatory in order to render the PDF correctly
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-
     // Handles the resizing of the window, changes the size of the PDF pages accordingly
     useEffect(() => {
         const handleResize = () => setWidth(window.innerWidth - 32);

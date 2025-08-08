@@ -1,8 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { pdfjs } from 'react-pdf'
-
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 
 export default function AdminUploadPDF() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -10,7 +7,17 @@ export default function AdminUploadPDF() {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-
+  useEffect(() => {
+    let isMounted = true;
+    if (typeof window !== "undefined") {
+      import('react-pdf').then(({ pdfjs }) => {
+        if (isMounted && pdfjs && pdfjs.GlobalWorkerOptions) {
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+        }
+      });
+    }
+    return () => { isMounted = false; };
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(null);
@@ -34,6 +41,7 @@ export default function AdminUploadPDF() {
 
       // Convert PDF to images
       const arrayBuffer = await file.arrayBuffer();
+      const { pdfjs } = await import('react-pdf');
       const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       const images: Blob[] = [];
       for (let i = 1; i <= pdf.numPages; i++) {
