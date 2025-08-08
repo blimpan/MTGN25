@@ -1,16 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-
-const Flipbook = dynamic(() => import("../components/Flipbook"), { ssr: false });
-const MobilePDFViewer = dynamic(() => import("../components/MobilePDFViewer"), { ssr: false });
 import useAuth from "../components/useAuth";
-
+import MobilePDFViewer from "../components/MobilePDFViewer";
+import Flipbook from "../components/Flipbook";
 
 const Bandaren = () => {
-  const [src, setSrc] = useState("");
+  const [src, setSrc] = useState<string[]>([]);
   const { user } = useAuth();
-  const [blandare, setBlandare] = useState([]);
+  const [blandare, setBlandare] = useState<string[][]>([]);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -33,6 +31,7 @@ const Bandaren = () => {
         });
         if (response.ok) {
           const data = await response.json();
+          // Expecting data to be an array of arrays of image URLs
           setBlandare(data);
         } else {
           console.error('Failed to fetch blandare');
@@ -47,22 +46,22 @@ const Bandaren = () => {
   if (!user) return <h1>Please login</h1>;
 
   return (
-    <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">
-      <div className="flex flex-wrap justify-center mb-10">
-        {blandare.map((item, index) => (
+    <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars">
+      <div className="flex flex-wrap justify-center mb-10 mt-4">
+        {blandare.map((images, index) => (
           <button
             key={index}
-            className="btn bg-green-600 active:bg-green-700 focus:ring-white text-white font-semibold py-3 px-4 box-border hover:border-transparent rounded focus:ring m-1"
-            onClick={() => setSrc(blandare[index])}
+            className="shadow-pink-glow btn bg-[#F288C6] active:bg-[#591d72] focus:ring-white text-white font-semibold py-3 px-4 box-border hover:border-transparent rounded focus:ring m-1"
+            onClick={() => setSrc(images)}
           >
             Bländaren {index + 1}
           </button>
         ))}
       </div>
-      {src && (
+      {src.length > 0 && (
         isMobile
-          ? <MobilePDFViewer src={src} /> //The mobile view of the Bländare, determined by screen size, no flipbook
-          : <Flipbook src={src} /> // The desktop view of the Bländare, with flipbook functionality
+          ? <MobilePDFViewer images={src} />
+          : <Flipbook images={src} />
       )}
     </main>
   );
