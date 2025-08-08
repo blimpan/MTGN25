@@ -8,6 +8,43 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 /* Admin page for updating user information, posting new posts and more */
 const AdminPanel = () => {
+  // Danger Zone state and handler (must be inside component)
+  const [dangerZoneLoading, setDangerZoneLoading] = useState(false);
+  const [dangerZoneResult, setDangerZoneResult] = useState<{deletedCount: number, keptCount: number} | null>(null);
+  const [dangerZoneError, setDangerZoneError] = useState('');
+  const [dangerZoneConfirm, setDangerZoneConfirm] = useState('');
+
+  const handleDangerZone = async (event: FormEvent) => {
+    event.preventDefault();
+    setDangerZoneError('');
+    setDangerZoneResult(null);
+    setDangerZoneLoading(true);
+    try {
+      if (!user) {
+        setDangerZoneError('User not authenticated.');
+        setDangerZoneLoading(false);
+        return;
+      }
+      const token = await user.getIdToken();
+      const response = await fetch('/api/deleteAllUsersExceptWhitelist', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setDangerZoneError(data.error || 'Failed to delete users.');
+      } else {
+        setDangerZoneResult({ deletedCount: data.deletedCount, keptCount: data.keptCount });
+      }
+    } catch (err) {
+      setDangerZoneError((err as Error).message);
+    } finally {
+      setDangerZoneLoading(false);
+      setDangerZoneConfirm('');
+    }
+  };
   const [uid, setUid] = useState('');
   // for display name
   const [displayName, setDisplayName] = useState('');
@@ -1020,6 +1057,32 @@ const AdminPanel = () => {
           <button type="submit" className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200">Upload Users</button>
           {bulkUsersError && <p className="text-red-500">{bulkUsersError}</p>}
           {bulkUsersSuccess && <p className="text-green-500">{bulkUsersSuccess}</p>}
+        </form>
+      </div>
+      {/* Danger Zone: Delete all users except whitelist */}
+      <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-6 space-y-6 border-2 border-red-500">
+        <form onSubmit={handleDangerZone} className="space-y-4">
+          <h1 className="mb-3 text-2xl font-semibold text-center text-red-600">Danger Zone</h1>
+          <p className="text-red-700 font-bold">Deletes ALL Auth accounts, Firestore user docs, and profilepics in Storage, except for the 3 whitelisted admin accounts. This action is IRREVERSIBLE.</p>
+          <label className="block text-gray-700 font-semibold">Type <span className="text-red-600 font-bold">DELETE</span> to confirm:</label>
+          <input
+            type="text"
+            value={dangerZoneConfirm}
+            onChange={e => setDangerZoneConfirm(e.target.value)}
+            className="border border-gray-300 rounded-lg p-2 w-full"
+            disabled={dangerZoneLoading}
+          />
+          <button
+            type="submit"
+            className="w-full bg-red-600 text-white rounded-lg py-2 hover:bg-red-700 transition duration-200 disabled:bg-gray-400"
+            disabled={dangerZoneLoading || dangerZoneConfirm !== 'DELETE'}
+          >
+            {dangerZoneLoading ? 'Deleting...' : 'Delete All Users (Except Whitelist)'}
+          </button>
+          {dangerZoneError && <p className="text-red-500">{dangerZoneError}</p>}
+          {dangerZoneResult && (
+            <p className="text-green-600 font-semibold">Deleted {dangerZoneResult.deletedCount} users. Kept {dangerZoneResult.keptCount} users.</p>
+          )}
         </form>
       </div>
     </main>
