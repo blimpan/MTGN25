@@ -15,22 +15,42 @@ export async function GET(req: NextRequest) {
 
         // Fetch all files from the 'blandare' folder in Firebase Storage
         const bucket = storage.bucket("mottagningen-7063b.appspot.com");
-        const options = { prefix: 'blandare/' };
-        const [files] = await bucket.getFiles(options);
+        const [files] = await bucket.getFiles({ prefix: 'blandare/' });
 
-        // Generate signed URLs for each file
-        const fileInfos = await Promise.all(
-            files
-                .filter(file => file.name.endsWith('.pdf')) // Only PDFs
-                .map(async (file) => {
-                    const [url] = await file.getSignedUrl({
-                        action: 'read',
-                        expires: Date.now() + 60 * 60 * 1000, // 1 hour
-                    });
-                    return url;
-                })
+        // Extract unique subfolder names
+        const subfolders = Array.from(
+            new Set(
+                files
+                    .map(file => {
+                        const match = file.name.match(/^blandare\/([^/]+)\//);
+                        return match ? match[1] : null;
+                    })
+                    .filter(Boolean)
+            )
         );
-        return NextResponse.json(fileInfos);
+
+        // For each subfolder, get all images and their signed URLs
+        const allImages: string[][] = [];
+        for (const folder of subfolders) {
+            const [imageFiles] = await bucket.getFiles({ prefix: `blandare/${folder}/` });
+            const imageUrls = await Promise.all(
+                imageFiles
+                    .filter(f => f.name.match(/\.(png|jpg|jpeg)$/i))
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+                    .map(async (imgFile) => {
+                        const [url] = await imgFile.getSignedUrl({
+                            action: 'read',
+                            expires: Date.now() + 60 * 60 * 24, // 1 day
+                        });
+                        return url;
+                    })
+            );
+            if (imageUrls.length > 0) {
+                allImages.push(imageUrls);
+            }
+        }
+
+        return NextResponse.json(allImages);
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
