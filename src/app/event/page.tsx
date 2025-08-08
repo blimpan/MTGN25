@@ -208,7 +208,7 @@ export default function EventGallery() {
                                 
                                 {/* Small white separator */}
                                 <div className="w-1 bg-gray-200"></div>
-                                
+
                                 {/* Right white section with thumbnail */}
                                 <div className="bg-white flex items-center justify-center overflow-hidden flex-1">
                                   {event.thumbnailUrl ? (
