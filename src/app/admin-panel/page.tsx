@@ -24,7 +24,7 @@ const AdminPanel = () => {
   });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [isResizing, setIsResizing] = useState(false);
+  const [isResizing, setIsResizing] = useState<string | false>(false);
   // for admin check
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -280,45 +280,30 @@ const AdminPanel = () => {
         const sourceWidth = cropData.width * scaleX;
         const sourceHeight = cropData.width * scaleY; // Use width for both to ensure square
 
-        // Calculate output dimensions:
-        // - For images larger than 1000x1000: crop exactly 1000x1000 pixels from original
-        // - For smaller images: use the actual crop size (no upscaling)
+        // Pure crop operation: output exactly what's selected from the original image
+        // The output size equals the actual crop area size in the original image
+        const actualCropSize = Math.round(sourceWidth);
+        
+        // Apply maximum size limit for profile pictures (1000x1000)
         const maxOutputSize = 1000;
-        const actualCropSize = sourceWidth; // Should always be square now
-        const outputSize = Math.min(maxOutputSize, actualCropSize);
+        const outputSize = Math.min(actualCropSize, maxOutputSize);
 
-        // Set canvas to the calculated output size
+        // Set canvas to the output size (either actual crop size or max allowed)
         canvas.width = outputSize;
         canvas.height = outputSize;
 
-        if (actualCropSize > maxOutputSize) {
-          // For large images: crop exactly 1000x1000 pixels from the center of the selected area
-          const cropOffset = (actualCropSize - maxOutputSize) / 2;
-          ctx?.drawImage(
-            img,
-            sourceX + cropOffset,
-            sourceY + cropOffset,
-            maxOutputSize,
-            maxOutputSize,
-            0,
-            0,
-            maxOutputSize,
-            maxOutputSize
-          );
-        } else {
-          // For smaller images: use the full crop area without upscaling
-          ctx?.drawImage(
-            img,
-            sourceX,
-            sourceY,
-            sourceWidth,  // Square width
-            sourceWidth,  // Square height (same as width)
-            0,
-            0,
-            outputSize,
-            outputSize
-          );
-        }
+        // Crop exactly what was selected, then scale down if necessary
+        ctx?.drawImage(
+          img,
+          Math.round(sourceX),
+          Math.round(sourceY),
+          Math.round(sourceWidth),  // Square width from original
+          Math.round(sourceWidth),  // Square height from original (same as width)
+          0,
+          0,
+          outputSize,
+          outputSize
+        );
 
         canvas.toBlob(
           (blob) => {
@@ -376,26 +361,35 @@ const AdminPanel = () => {
   // NEW: handle mouse down on crop area for dragging
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    e.stopPropagation();
+    
+    const container = e.currentTarget.parentElement;
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
     
     setIsDragging(true);
-    setDragStart({ x: x - cropData.x, y: y - cropData.y });
+    setDragStart({ 
+      x: mouseX - cropData.x, 
+      y: mouseY - cropData.y 
+    });
   };
 
   // NEW: handle mouse move for dragging
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
+    if (!isDragging && !isResizing) return;
     
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const containerRect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
     
-    const newX = x - dragStart.x;
-    const newY = y - dragStart.y;
-    
-    updateCropArea({ x: newX, y: newY });
+    if (isDragging) {
+      const newX = mouseX - dragStart.x;
+      const newY = mouseY - dragStart.y;
+      updateCropArea({ x: newX, y: newY });
+    }
   };
 
   // NEW: handle mouse up to stop dragging
@@ -408,21 +402,44 @@ const AdminPanel = () => {
   const handleCornerMouseDown = (e: React.MouseEvent, corner: string) => {
     e.stopPropagation();
     e.preventDefault();
-    setIsResizing(true);
+    setIsResizing(corner); // Store which corner is being resized
     setDragStart({ x: e.clientX, y: e.clientY });
   };
 
-  // NEW: handle corner resize move
+  // NEW: handle corner resize move - different behavior per corner
   const handleCornerMouseMove = (e: React.MouseEvent) => {
     if (!isResizing) return;
     
     const deltaX = e.clientX - dragStart.x;
     const deltaY = e.clientY - dragStart.y;
-    // Use the larger delta to maintain square and allow both directions
-    const delta = Math.max(Math.abs(deltaX), Math.abs(deltaY)) * (deltaX >= 0 || deltaY >= 0 ? 1 : -1);
     
-    const newSize = Math.max(50, cropData.width + delta);
-    updateCropArea({ width: newSize, height: newSize }); // Always square
+    // Use the larger absolute delta to maintain square aspect ratio
+    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+    
+    if (isResizing === 'nw') {
+      // Top-left: resize from top-left corner (decrease size = move position)
+      const newSize = Math.max(50, cropData.width - delta);
+      const sizeDiff = cropData.width - newSize;
+      updateCropArea({ 
+        x: cropData.x + sizeDiff, 
+        y: cropData.y + sizeDiff,
+        width: newSize, 
+        height: newSize 
+      });
+    } else if (isResizing === 'sw') {
+      // Bottom-left: resize from bottom-left corner
+      const newSize = Math.max(50, cropData.width - delta);
+      const sizeDiff = cropData.width - newSize;
+      updateCropArea({ 
+        x: cropData.x + sizeDiff, 
+        width: newSize, 
+        height: newSize 
+      });
+    } else {
+      // Top-right (ne) and bottom-right (se): resize from right edge (default behavior)
+      const newSize = Math.max(50, cropData.width + delta);
+      updateCropArea({ width: newSize, height: newSize });
+    }
     
     setDragStart({ x: e.clientX, y: e.clientY });
   };
@@ -433,11 +450,34 @@ const AdminPanel = () => {
       if (isResizing) {
         const deltaX = e.clientX - dragStart.x;
         const deltaY = e.clientY - dragStart.y;
-        // Use the larger delta to maintain square
-        const delta = Math.max(Math.abs(deltaX), Math.abs(deltaY)) * (deltaX >= 0 || deltaY >= 0 ? 1 : -1);
         
-        const newSize = Math.max(50, cropData.width + delta);
-        updateCropArea({ width: newSize, height: newSize }); // Always square
+        // Use the larger absolute delta to maintain square aspect ratio
+        const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+        
+        if (isResizing === 'nw') {
+          // Top-left: resize from top-left corner (decrease size = move position)
+          const newSize = Math.max(50, cropData.width - delta);
+          const sizeDiff = cropData.width - newSize;
+          updateCropArea({ 
+            x: cropData.x + sizeDiff, 
+            y: cropData.y + sizeDiff,
+            width: newSize, 
+            height: newSize 
+          });
+        } else if (isResizing === 'sw') {
+          // Bottom-left: resize from bottom-left corner
+          const newSize = Math.max(50, cropData.width - delta);
+          const sizeDiff = cropData.width - newSize;
+          updateCropArea({ 
+            x: cropData.x + sizeDiff, 
+            width: newSize, 
+            height: newSize 
+          });
+        } else {
+          // Top-right (ne) and bottom-right (se): resize from right edge (default behavior)
+          const newSize = Math.max(50, cropData.width + delta);
+          updateCropArea({ width: newSize, height: newSize });
+        }
         
         setDragStart({ x: e.clientX, y: e.clientY });
       }
@@ -457,7 +497,7 @@ const AdminPanel = () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [isDragging, isResizing, dragStart, cropData.width]);
+  }, [isDragging, isResizing, dragStart, cropData.width, cropData.x, cropData.y]);
 
   // NEW: create new event
   const handleCreateEvent = async (event: FormEvent) => {
@@ -716,18 +756,27 @@ const AdminPanel = () => {
   // set user as admin
   const setAdmin = async (event: FormEvent) => {
     event.preventDefault();
+    
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+
     try {
+      const token = await user.getIdToken();
       const response = await fetch("/api/setAdmin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ uid: adminUid }),
       });
 
       if (!response.ok) {
+        const data = await response.json();
         console.error("HTTP error", response.status);
-        alert("Failed to set admin: " + response.statusText);
+        alert("Failed to set admin: " + (data.error || response.statusText));
         return;
       }
 
@@ -735,6 +784,7 @@ const AdminPanel = () => {
       console.log("Success:", data);
       alert("User is now an admin.");
       fetchAdmins(); // Refresh admins list
+      setAdminUid(''); // Clear the input field
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error:", error.message);
@@ -1243,7 +1293,7 @@ const AdminPanel = () => {
               required={!imagePreview}
             />
             <p className="text-xs text-gray-500">
-              Image will be cropped to a mandatory square and converted to WebP format (max 1000x1000 pixels)
+              Image will be cropped to a square and converted to WebP format (up to 1000×1000 pixels)
             </p>
           </div>
 
@@ -1306,7 +1356,6 @@ const AdminPanel = () => {
                     minHeight: '50px',
                   }}
                   onMouseDown={handleMouseDown}
-                  onMouseMove={isResizing ? handleCornerMouseMove : undefined}
                 >
                   {/* Corner handles */}
                   <div 
@@ -1343,7 +1392,7 @@ const AdminPanel = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Square Size</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Crop Size</label>
                   <input
                     type="range"
                     min="50"
@@ -1355,19 +1404,64 @@ const AdminPanel = () => {
                     value={cropData.width}
                     onChange={(e) => {
                       const newSize = parseInt(e.target.value);
-                      updateCropArea({ width: newSize, height: newSize }); // Always square
+                      updateCropArea({ width: newSize, height: newSize });
                     }}
                     className="w-full"
                   />
-                  <div className="text-xs text-gray-500">{cropData.width}x{cropData.width}px square</div>
+                  <div className="text-xs text-gray-500">
+                    {(() => {
+                      const img = document.getElementById('cropImage') as HTMLImageElement;
+                      if (!img) return `${Math.round(cropData.width)}×${Math.round(cropData.width)}px`;
+                      
+                      const scaleX = img.naturalWidth / img.clientWidth;
+                      const actualCropSize = Math.round(cropData.width * scaleX);
+                      const maxOutputSize = 1000;
+                      const finalSize = Math.min(actualCropSize, maxOutputSize);
+                      
+                      if (actualCropSize <= maxOutputSize) {
+                        return `Output: ${finalSize}×${finalSize}px`;
+                      } else {
+                        return `Crop: ${actualCropSize}×${actualCropSize}px → ${finalSize}×${finalSize}px`;
+                      }
+                    })()}
+                  </div>
                 </div>
               </div>
 
-              <div className="text-center">
-                <div className="text-sm font-medium text-gray-700 mb-1">Output: Square WebP (Max 1000x1000px)</div>
+              <div className="text-center bg-blue-50 p-3 rounded">
+                <div className="text-sm font-medium text-gray-700 mb-1">
+                  {(() => {
+                    const img = document.getElementById('cropImage') as HTMLImageElement;
+                    if (!img) return 'Output Resolution: ?×? pixels WebP';
+                    
+                    const scaleX = img.naturalWidth / img.clientWidth;
+                    const actualCropSize = Math.round(cropData.width * scaleX);
+                    const maxOutputSize = 1000;
+                    const finalSize = Math.min(actualCropSize, maxOutputSize);
+                    
+                    if (actualCropSize <= maxOutputSize) {
+                      return `Output Resolution: ${finalSize}×${finalSize} pixels WebP`;
+                    } else {
+                      return `Crop: ${actualCropSize}×${actualCropSize} → Output: ${finalSize}×${finalSize} pixels WebP`;
+                    }
+                  })()}
+                </div>
                 <div className="text-xs text-gray-500">
-                  💡 Drag the blue square to move it, drag corners to resize, or use the slider above<br/>
-                  Profile pictures are always square • Large images: crops 1000x1000 pixels • Small images: no upscaling
+                  💡 Drag the square to move • Drag corners to resize • Use slider above<br/>
+                  {(() => {
+                    const img = document.getElementById('cropImage') as HTMLImageElement;
+                    if (!img) return 'Crop from original, max output 1000×1000';
+                    
+                    const scaleX = img.naturalWidth / img.clientWidth;
+                    const actualCropSize = Math.round(cropData.width * scaleX);
+                    const maxOutputSize = 1000;
+                    
+                    if (actualCropSize <= maxOutputSize) {
+                      return 'Pure crop: You get exactly what you select from the original image';
+                    } else {
+                      return 'Crop from original, then scaled down to fit 1000×1000 limit';
+                    }
+                  })()}
                 </div>
               </div>
 
@@ -1488,12 +1582,14 @@ const AdminPanel = () => {
                     </div>
                   </div>
                   <div className="flex flex-col space-y-2">
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                      Admin
-                    </span>
+                    <div className="flex justify-end">
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                        Admin
+                      </span>
+                    </div>
                     <button
                       onClick={() => handleRemoveAdmin(admin.uid, admin.displayName || admin.name || admin.username || admin.identifier || admin.email || 'Unknown User')}
-                      className="bg-red-500 text-white text-sm px-3 py-1 rounded hover:bg-red-600 transition duration-200"
+                      className="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600 transition duration-200 min-w-[120px]"
                       disabled={admin.uid === user?.uid} // Prevent removing own admin privileges
                     >
                       {admin.uid === user?.uid ? 'Self' : 'Remove Admin'}
