@@ -131,7 +131,15 @@ export default function N0llegrupper() {
                         <div className="grid grid-cols-3 gap-4 lg:grid-cols-4 2xl:grid-cols-5 mt-1">
                             {groupUsers.map((user, index) => (
                                 <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className={`bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200`}>
-                                    <img src={user.profilePic} alt={`User ${index + 1}`} className="w-full aspect-square rounded-lg" />
+                                    <img 
+                                        src={user.profilePic} 
+                                        alt={`User ${index + 1}`} 
+                                        className="w-full aspect-square rounded-lg"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = '/defaultprofile.svg';
+                                        }}
+                                    />
                                     <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
                                 </button>
                             ))}
@@ -140,7 +148,15 @@ export default function N0llegrupper() {
                         <div className="grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 mt-4">
                             {kphUsers.map((user, index) => (
                                 <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200">
-                                <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
+                                <img 
+                                    src={user.profilePic} 
+                                    alt={user.name} 
+                                    className="w-full aspect-square rounded-lg"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = '/defaultprofile.svg';
+                                    }}
+                                />
                                 <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
                             </button>
                             ))}
@@ -148,7 +164,15 @@ export default function N0llegrupper() {
                         <div className="grid grid-cols-3 gap-4 2xl:mx-48">
                             {phosUsers.map((user, index) => (
                                 <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200">
-                                    <img src={user.profilePic} alt={`User ${index + 1}`} className="w-full aspect-square rounded-lg" />
+                                    <img 
+                                        src={user.profilePic} 
+                                        alt={`User ${index + 1}`} 
+                                        className="w-full aspect-square rounded-lg"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = '/defaultprofile.svg';
+                                        }}
+                                    />
                                     <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
                                 </button>
                             ))}
@@ -167,7 +191,14 @@ export default function N0llegrupper() {
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
                     <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
-                        <img src={popUpPic} className="w-full aspect-square rounded-lg" />
+                        <img 
+                            src={popUpPic} 
+                            className="w-full aspect-square rounded-lg"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/defaultprofile.svg';
+                            }}
+                        />
                         <h1 className="text-black text-xl font-bold p-1">{popUpName}</h1>
                         <h1 className="text-black">Fun fact: {popUpFunFact}</h1>
                     </div>

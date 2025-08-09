@@ -147,7 +147,15 @@ export default function PhosarGrupper() {
             <div className={containerClasses}>
                     {electusUsers.map((user, index) => (
                         <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact, group)} key={index} className={electusClasses}>
-                            <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
+                            <img 
+                                src={user.profilePic} 
+                                alt={user.name} 
+                                className="w-full aspect-square rounded-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/defaultprofile.svg';
+                                }}
+                            />
                             <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
@@ -155,7 +163,15 @@ export default function PhosarGrupper() {
                 <div className="grid grid-cols-3 gap-4 lg:grid-cols-4 2xl:grid-cols-5 mt-4">
                     {phosUsers.map((user, index) => (
                         <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact, group)} key={index} className={userClasses}>
-                            <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
+                            <img 
+                                src={user.profilePic} 
+                                alt={user.name} 
+                                className="w-full aspect-square rounded-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/defaultprofile.svg';
+                                }}
+                            />
                             <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
@@ -173,7 +189,16 @@ export default function PhosarGrupper() {
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
                     <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
-                        <img src={popUpPic} className="w-full aspect-square rounded-lg" />
+                        <img 
+                            src={popUpPic} 
+                            className="w-full aspect-square rounded-lg"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (target.src !== '/denied.gif') { // Don't fallback if it's already the denied gif
+                                    target.src = '/defaultprofile.svg';
+                                }
+                            }}
+                        />
                         <h1 className="text-black text-xl font-bold p-1">{popUpName}</h1>
                         <h1 className="text-black">{funFactText} {popUpFunFact}</h1>
                     </div>

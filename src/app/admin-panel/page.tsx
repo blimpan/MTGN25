@@ -141,7 +141,7 @@ const AdminPanel = () => {
     setAdminsLoading(true);
     try {
       const token = await user.getIdToken();
-      const response = await fetch('/api/getUsers', {
+      const response = await fetch('/api/getAdmins', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -150,11 +150,10 @@ const AdminPanel = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Filter only admin users
-        const adminUsers = data.users ? data.users.filter((user: any) => user.isAdmin === true) : [];
-        setAdmins(adminUsers);
+        // API now returns pre-filtered admin users
+        setAdmins(data.admins || []);
       } else {
-        console.error('Failed to fetch users:', response.status, response.statusText);
+        console.error('Failed to fetch admins:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching admins:', error);

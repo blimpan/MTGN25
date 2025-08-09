@@ -15,28 +15,10 @@ export async function GET(req: NextRequest, res: NextResponse) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Check if user is admin
-        if (!decodedToken.isAdmin) {
-            return NextResponse.json({ error: 'Admin privileges required' }, { status: 403 });
-        }
-
-        /* GET ALL USERS FROM FIREBASE AUTH AND MERGE WITH FIRESTORE DATA */
-        // First, get all users from Firebase Auth
-        const allAuthUsers: any[] = [];
-        let nextPageToken: string | undefined;
-        
-        do {
-            const listUsersResult = await auth.listUsers(1000, nextPageToken);
-            allAuthUsers.push(...listUsersResult.users);
-            nextPageToken = listUsersResult.pageToken;
-        } while (nextPageToken);
-
-        // Get all users from Firestore
+        /* GET ALL USERS FROM USER COLLETION FROM FIREBASE */
+        // get all users from the database
         const snapshot = await db.collection('users').get();
-        const firestoreUsers = new Map();
-        snapshot.docs.forEach(doc => {
-            firestoreUsers.set(doc.id, { id: doc.id, uid: doc.id, ...doc.data() });
-        });
+        let users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         /* GET PROFILE PICTURE URLs FROM FIREBASE CLOUD STORAGE */
         // specify firebase cloud storage bucket
@@ -45,51 +27,80 @@ export async function GET(req: NextRequest, res: NextResponse) {
             prefix: `profilepics/`,
         };
         const [profilePicsFiles] = await bucket.getFiles(bucketOptions);
-        
-        // Create profile picture map (handle case where no files exist)
+        //profilePicsFiles.forEach(file => console.log(file.name));
+        // Error handling if no files are found
+        if (profilePicsFiles.length === 0) {
+            console.error(`No files found for folder: ${bucketOptions.prefix}`);
+            return NextResponse.json({ error: 'No files found for this folder' }, { status: 404 });
+        };
+        // get signed URLs for the images (otherwise they are private) and remove the first entry (the folder itself)
+        const eventImagePromises = profilePicsFiles.map(file =>
+            file.getSignedUrl({
+                action: 'read',
+                expires: '03-09-2491'
+            })
+        );
+
+        // get the URLs with the signed URLs
+        const eventImageUrls = await Promise.all(eventImagePromises);
+        const imageUrls = eventImageUrls.map(url => url[0]);
+        //console.log("IMAGE URLS: ", imageUrls);
+        // create a map of profile IDS and corresponding picture URLs
         const profilePicMap: { [key: string]: string } = {};
-        if (profilePicsFiles.length > 0) {
-            // get signed URLs for the images (otherwise they are private) and remove the first entry (the folder itself)
-            const eventImagePromises = profilePicsFiles.map(file =>
-                file.getSignedUrl({
-                    action: 'read',
-                    expires: '03-09-2491'
-                })
-            );
-
-            // get the URLs with the signed URLs
-            const eventImageUrls = await Promise.all(eventImagePromises);
-            const imageUrls = eventImageUrls.map(url => url[0]);
-            
-            // iterate over the profile pictures and create a map of profile IDs and corresponding picture URLs
-            for (let i = 1; i < profilePicsFiles.length; i++) {
-                const fileName = profilePicsFiles[i].name.split('/')[1];
-                profilePicMap[fileName] = imageUrls[i];
-            }
+        // iterate over the profile pictures and create a map of profile IDs and corresponding picture URLs
+        for (let i = 1; i < profilePicsFiles.length; i++) {
+            //console.log("FILENAME: ", fileNameWithExt);
+            const fileName = profilePicsFiles[i].name.split('/')[1];
+            //console.log("FILENAME: ", fileName);
+            profilePicMap[fileName] = imageUrls[i];
         }
+        //console.log("PROFILE PIC MAP: ", profilePicMap);
 
-        // Merge Firebase Auth users with Firestore data
-        const usersWithAdminStatus = allAuthUsers.map((authUser) => {
-            const firestoreData = firestoreUsers.get(authUser.uid) || {};
-            const isAdmin = authUser.customClaims?.isAdmin || false;
-            const pictureUrl = profilePicMap[authUser.uid + '.webp'];
+        // pair up the user with corresponding profilepicture URLs and add them to users array of dictonaries
+        users = await Promise.all(users.map(async (user) => {
+            const id = user.id;
+            let pictureUrl = '/defaultprofile.svg'; // Default first
+            
+            // First try to get from Firestore (supports any format)
+            try {
+                const userDoc = await db.collection('users').doc(id).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData?.profilePic) {
+                        try {
+                            // Generate signed URL for the profile picture from Firestore path
+                            const file = storage.bucket().file(userData.profilePic.replace('gs://mottagningen-7063b.appspot.com/', ''));
+                            
+                            // Check if file exists before generating signed URL
+                            const [exists] = await file.exists();
+                            if (exists) {
+                                const [url] = await file.getSignedUrl({
+                                    action: 'read',
+                                    expires: '03-09-2491'
+                                });
+                                pictureUrl = url;
+                            }
+                        } catch (error) {
+                            console.error(`Error getting profile picture from Firestore for user ${id}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error accessing Firestore for user ${id}:`, error);
+            }
+            
+            // Fallback to old method (WebP only) if Firestore method didn't find a file
+            if (pictureUrl === '/defaultprofile.svg' && profilePicMap[id + '.webp']) {
+                pictureUrl = profilePicMap[id + '.webp'];
+            }
             
             return {
-                uid: authUser.uid,
-                id: authUser.uid,
-                ...firestoreData, // Include any additional Firestore data first
-                // Then override with Firebase Auth data which is more reliable
-                email: authUser.email || firestoreData.email || firestoreData.identifier,
-                displayName: authUser.displayName || firestoreData.displayName || firestoreData.name,
-                username: firestoreData.username || firestoreData.name || authUser.displayName,
-                phoneNumber: authUser.phoneNumber || firestoreData.phoneNumber,
-                createdAt: firestoreData.createdAt,
-                profilePic: pictureUrl || '/defaultprofile.svg',
-                isAdmin
+                ...user,
+                profilePic: pictureUrl
             };
-        });
-        
-        return NextResponse.json({ users: usersWithAdminStatus });
+        }));
+
+        return NextResponse.json( users );
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
