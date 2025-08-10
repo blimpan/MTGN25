@@ -71,18 +71,10 @@ export default function EventGallery() {
     fetchEvents();
   }, [user]);
 
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
-        <h1 className="text-white text-2xl">Please log in to view events</h1>
-      </main>
-    );
-  }
-
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
-        <h1 className="text-white text-2xl">Loading events...</h1>
+        <h1 className="text-white text-2xl">Letar efter events...</h1>
       </main>
     );
   }
@@ -95,12 +87,20 @@ export default function EventGallery() {
     );
   }
 
+  if (!user && !loading) {
+    return (
+      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
+        <h1 className="text-white text-2xl">Vänligen logga in</h1>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-stars p-4 md:p-8">
       <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto">
         {events.length === 0 ? (
           <div className="w-full text-center py-16">
-            <h2 className="text-white text-xl md:text-2xl">No events available yet</h2>
+            <h2 className="text-white text-xl md:text-2xl">Vänta du bara</h2>
           </div>
         ) : (
           (() => {

@@ -45,6 +45,14 @@ const Bandaren = () => {
 
   if (!user) return <h1>Please login</h1>;
 
+  if (blandare.length === 0) {
+    return (
+      <main className="min-h-screen bg-gradient-stars flex items-center justify-center">
+        <h1 className="text-white text-2xl">Ingen Bländare har publicerats än. Kom tillbaka senare eller något</h1>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars">
       <div className="flex flex-wrap justify-center mb-10 mt-4">
