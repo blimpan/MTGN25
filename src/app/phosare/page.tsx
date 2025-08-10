@@ -110,11 +110,16 @@ export default function PhosarGrupper() {
 
         return (
         <div key={group + "1"} className='flex items-center flex-col mx-7 sm:mx-16 md:mx-32 lg:mx-64 xl:mx-96'>
-            <button onClick={() => toggleGroupBool(index, group)} className={`bg-almost-black text-amber-50 font-normal text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap drop-shadow shadow-pink-glow hover:bg-black ${group === "RSA" ? stardos.className : ''}`}>{group}
-                <div className='text-right pr-3 pb-3 h-2'>
+            <button
+                onClick={() => toggleGroupBool(index, group)}
+                className={`relative text-white font-bold  text-xl mt-4 rounded-lg w-full py-5 whitespace-nowrap drop-shadow shadow-pink-glow hover:bg-black ${group === "RSA" ? stardos.className : ''}`}
+                style={{ backgroundImage: `url('/phosargrupp-images/${group}.jpg')`, backgroundRepeat: 'repeat', backgroundSize: 'contain' }}
+            >
+                <span className="block text-center w-full">{group}</span>
+                <span className="absolute right-2 -bottom-1.5">
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
                     {groupBool[index] ? <i className="material-symbols-outlined">arrow_drop_up</i> : <i className="material-symbols-outlined">arrow_drop_down</i>}
-                </div>
+                </span>
             </button>
             <div className={`transition-all delay-150 duration-200 overflow-hidden w-full ${groupBool[index] ? "max-h-[150rem]" : "max-h-0"}`}>
             
@@ -160,7 +165,7 @@ export default function PhosarGrupper() {
     if (!user) { return <h1>Please login :|</h1>; } // If middleware.ts is working this should never be rendered
     return (
         <main className={`min-h-screen transition-colors duration-300 ${rsaOpen ? 'bg-black' : 'bg-gradient-stars'}`}>
-            <div>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
+            <div className='mt-3'>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
                     <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
