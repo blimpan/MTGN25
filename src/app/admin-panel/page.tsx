@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import useAuth from '../components/useAuth';
 import { ref, uploadBytes } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -9,14 +9,33 @@ import AdminUploadPDF from '../components/AdminUploadPDF';
 
 /* Admin page for updating user information, posting new posts and more */
 const AdminPanel = () => {
-  const [uid, setUid] = useState('');
   // for display name
+  const [displayNameUid, setDisplayNameUid] = useState('');
   const [displayName, setDisplayName] = useState('');
   // for profile picture
-  const [image, setImage] = useState<File | null>(null);
+  const [profilePicUid, setProfilePicUid] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropData, setCropData] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    scale: 1
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isResizing, setIsResizing] = useState<string | false>(false);
   // for admin check
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  // for set admin
+  const [adminUid, setAdminUid] = useState('');
+  // for manage admins
+  const [admins, setAdmins] = useState<any[]>([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
+  const [manageAdminError, setManageAdminError] = useState('');
+  const [manageAdminSuccess, setManageAdminSuccess] = useState('');
   // for posting new posts
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -116,16 +135,53 @@ const AdminPanel = () => {
     }
   };
 
+  // NEW: fetch all admins
+  const fetchAdmins = async () => {
+    if (!user) return;
+    
+    setAdminsLoading(true);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/getAdmins', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // API now returns pre-filtered admin users
+        setAdmins(data.admins || []);
+      } else {
+        console.error('Failed to fetch admins:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    } finally {
+      setAdminsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchEvents();
+      fetchAdmins();
     }
   }, [isAdmin, user]);
 
   // image change handler
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImage(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Create preview for cropping
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -186,6 +242,262 @@ const AdminPanel = () => {
       img.src = URL.createObjectURL(file);
     });
   };
+
+  // NEW: crop and convert profile picture to WebP
+  const cropAndConvertProfilePicture = (imageUrl: string, cropData: any): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      img.onload = () => {
+        // Get the displayed image element to calculate scaling
+        const displayedImg = document.getElementById('cropImage') as HTMLImageElement;
+        if (!displayedImg || !displayedImg.parentElement) {
+          reject(new Error('Could not find displayed image or its container'));
+          return;
+        }
+
+        // Calculate the offset from container to actual image display area
+        const imageDisplayWidth = displayedImg.clientWidth;
+        const imageDisplayHeight = displayedImg.clientHeight;
+        const containerWidth = displayedImg.parentElement.clientWidth;
+        const containerHeight = displayedImg.parentElement.clientHeight;
+        
+        const imageOffsetX = Math.max(0, (containerWidth - imageDisplayWidth) / 2);
+        const imageOffsetY = Math.max(0, (containerHeight - imageDisplayHeight) / 2);
+
+        // Adjust crop coordinates by removing the offset
+        const adjustedX = cropData.x - imageOffsetX;
+        const adjustedY = cropData.y - imageOffsetY;
+
+        // Calculate scale factors from displayed size to natural size
+        const scaleX = img.naturalWidth / imageDisplayWidth;
+        const scaleY = img.naturalHeight / imageDisplayHeight;
+        
+        const sourceX = adjustedX * scaleX;
+        const sourceY = adjustedY * scaleY;
+        const sourceWidth = cropData.width * scaleX;
+        const sourceHeight = cropData.width * scaleY; // Use width for both to ensure square
+
+        // Pure crop operation: output exactly what's selected from the original image
+        // The output size equals the actual crop area size in the original image
+        const actualCropSize = Math.round(sourceWidth);
+        
+        // Apply maximum size limit for profile pictures (1000x1000)
+        const maxOutputSize = 1000;
+        const outputSize = Math.min(actualCropSize, maxOutputSize);
+
+        // Set canvas to the output size (either actual crop size or max allowed)
+        canvas.width = outputSize;
+        canvas.height = outputSize;
+
+        // Crop exactly what was selected, then scale down if necessary
+        ctx?.drawImage(
+          img,
+          Math.round(sourceX),
+          Math.round(sourceY),
+          Math.round(sourceWidth),  // Square width from original
+          Math.round(sourceWidth),  // Square height from original (same as width)
+          0,
+          0,
+          outputSize,
+          outputSize
+        );
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Failed to crop and convert image'));
+            }
+          },
+          'image/webp',
+          0.9 // High quality for profile pictures
+        );
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image for cropping'));
+      img.src = imageUrl;
+    });
+  };
+
+  // NEW: handle crop area updates with constraints
+  const updateCropArea = (newCropData: Partial<typeof cropData>) => {
+    const img = document.getElementById('cropImage') as HTMLImageElement;
+    if (!img || !img.parentElement) return;
+
+    // Get the actual displayed image dimensions
+    const imageDisplayWidth = img.clientWidth;
+    const imageDisplayHeight = img.clientHeight;
+    const containerWidth = img.parentElement.clientWidth;
+    const containerHeight = img.parentElement.clientHeight;
+    
+    // Calculate offset from container to image (for centered images)
+    const imageOffsetX = Math.max(0, (containerWidth - imageDisplayWidth) / 2);
+    const imageOffsetY = Math.max(0, (containerHeight - imageDisplayHeight) / 2);
+
+    // ENFORCE SQUARE: Always use the same value for width and height
+    const maxSquareSize = Math.min(imageDisplayWidth, imageDisplayHeight);
+    let newSize = newCropData.width || newCropData.height || cropData.width;
+    
+    // Ensure the square fits within image bounds
+    newSize = Math.max(50, Math.min(maxSquareSize, newSize));
+    
+    const maxX = imageDisplayWidth - newSize;
+    const maxY = imageDisplayHeight - newSize;
+
+    setCropData(prev => ({
+      ...prev,
+      ...newCropData,
+      x: Math.max(imageOffsetX, Math.min(imageOffsetX + maxX, newCropData.x !== undefined ? newCropData.x : prev.x)),
+      y: Math.max(imageOffsetY, Math.min(imageOffsetY + maxY, newCropData.y !== undefined ? newCropData.y : prev.y)),
+      width: newSize,  // Always square
+      height: newSize  // Always square
+    }));
+  };
+
+  // NEW: handle mouse down on crop area for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const container = e.currentTarget.parentElement;
+    if (!container) return;
+    
+    const containerRect = container.getBoundingClientRect();
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
+    
+    setIsDragging(true);
+    setDragStart({ 
+      x: mouseX - cropData.x, 
+      y: mouseY - cropData.y 
+    });
+  };
+
+  // NEW: handle mouse move for dragging
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging && !isResizing) return;
+    
+    const containerRect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - containerRect.left;
+    const mouseY = e.clientY - containerRect.top;
+    
+    if (isDragging) {
+      const newX = mouseX - dragStart.x;
+      const newY = mouseY - dragStart.y;
+      updateCropArea({ x: newX, y: newY });
+    }
+  };
+
+  // NEW: handle mouse up to stop dragging
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  // NEW: handle corner resize
+  const handleCornerMouseDown = (e: React.MouseEvent, corner: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsResizing(corner); // Store which corner is being resized
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  // NEW: handle corner resize move - different behavior per corner
+  const handleCornerMouseMove = (e: React.MouseEvent) => {
+    if (!isResizing) return;
+    
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    // Use the larger absolute delta to maintain square aspect ratio
+    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+    
+    if (isResizing === 'nw') {
+      // Top-left: resize from top-left corner (decrease size = move position)
+      const newSize = Math.max(50, cropData.width - delta);
+      const sizeDiff = cropData.width - newSize;
+      updateCropArea({ 
+        x: cropData.x + sizeDiff, 
+        y: cropData.y + sizeDiff,
+        width: newSize, 
+        height: newSize 
+      });
+    } else if (isResizing === 'sw') {
+      // Bottom-left: resize from bottom-left corner
+      const newSize = Math.max(50, cropData.width - delta);
+      const sizeDiff = cropData.width - newSize;
+      updateCropArea({ 
+        x: cropData.x + sizeDiff, 
+        width: newSize, 
+        height: newSize 
+      });
+    } else {
+      // Top-right (ne) and bottom-right (se): resize from right edge (default behavior)
+      const newSize = Math.max(50, cropData.width + delta);
+      updateCropArea({ width: newSize, height: newSize });
+    }
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  // Add global mouse event listeners
+  React.useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isResizing) {
+        const deltaX = e.clientX - dragStart.x;
+        const deltaY = e.clientY - dragStart.y;
+        
+        // Use the larger absolute delta to maintain square aspect ratio
+        const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
+        
+        if (isResizing === 'nw') {
+          // Top-left: resize from top-left corner (decrease size = move position)
+          const newSize = Math.max(50, cropData.width - delta);
+          const sizeDiff = cropData.width - newSize;
+          updateCropArea({ 
+            x: cropData.x + sizeDiff, 
+            y: cropData.y + sizeDiff,
+            width: newSize, 
+            height: newSize 
+          });
+        } else if (isResizing === 'sw') {
+          // Bottom-left: resize from bottom-left corner
+          const newSize = Math.max(50, cropData.width - delta);
+          const sizeDiff = cropData.width - newSize;
+          updateCropArea({ 
+            x: cropData.x + sizeDiff, 
+            width: newSize, 
+            height: newSize 
+          });
+        } else {
+          // Top-right (ne) and bottom-right (se): resize from right edge (default behavior)
+          const newSize = Math.max(50, cropData.width + delta);
+          updateCropArea({ width: newSize, height: newSize });
+        }
+        
+        setDragStart({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+    };
+
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, isResizing, dragStart, cropData.width, cropData.x, cropData.y]);
 
   // NEW: create new event
   const handleCreateEvent = async (event: FormEvent) => {
@@ -392,7 +704,43 @@ const AdminPanel = () => {
     }
   };
 
-  // NEW: format date for display
+  // NEW: remove admin privileges
+  const handleRemoveAdmin = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to remove admin privileges from ${userName}?`)) return;
+    if (!user) return;
+
+    // Clear previous messages
+    setManageAdminError('');
+    setManageAdminSuccess('');
+
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/setAdmin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          uid: userId,
+          isAdmin: false // Remove admin privileges
+        }),
+      });
+
+      if (response.ok) {
+        setManageAdminSuccess(`Admin privileges removed from ${userName}`);
+        fetchAdmins(); // Refresh admins list
+      } else {
+        const data = await response.json();
+        setManageAdminError(data.error || 'Failed to remove admin privileges');
+      }
+    } catch (error) {
+      console.error('Error removing admin:', error);
+      setManageAdminError('Failed to remove admin privileges');
+    }
+  };
+
+  // format date for display
   const formatEventDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('sv-SE', { 
@@ -408,24 +756,35 @@ const AdminPanel = () => {
   // set user as admin
   const setAdmin = async (event: FormEvent) => {
     event.preventDefault();
+    
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+
     try {
+      const token = await user.getIdToken();
       const response = await fetch("/api/setAdmin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ uid }),
+        body: JSON.stringify({ uid: adminUid }),
       });
 
       if (!response.ok) {
+        const data = await response.json();
         console.error("HTTP error", response.status);
-        alert("Failed to set admin: " + response.statusText);
+        alert("Failed to set admin: " + (data.error || response.statusText));
         return;
       }
 
       const data = await response.json();
       console.log("Success:", data);
       alert("User is now an admin.");
+      fetchAdmins(); // Refresh admins list
+      setAdminUid(''); // Clear the input field
     } catch (error) {
       if (error instanceof Error) {
         console.error("Error:", error.message);
@@ -442,7 +801,7 @@ const AdminPanel = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid, displayName }),
+        body: JSON.stringify({ uid: displayNameUid, displayName }),
       });
 
       if (!response.ok) {
@@ -464,20 +823,34 @@ const AdminPanel = () => {
   // upload profile picture
   const handleUpload = async (event: FormEvent) => {
     event.preventDefault();
-    if (image && uid) {
+    if (imagePreview && profilePicUid && cropData.width > 0) {
       if (!isAdmin) {
         alert("You are not authorized to perform this action.");
         return;
       }
 
-      const storageRef = ref(storage, `profilepics/${uid}`);
       try {
-        await uploadBytes(storageRef, image);
+        // Crop and convert to WebP
+        const webpBlob = await cropAndConvertProfilePicture(imagePreview, cropData);
+        
+        const storageRef = ref(storage, `profilepics/${profilePicUid}.webp`);
+        await uploadBytes(storageRef, webpBlob);
         const gsUrl = `gs://${storageRef.bucket}/${storageRef.fullPath}`;
+        
         try {
-          await updateDoc(doc(db, "users", uid), {
+          await updateDoc(doc(db, "users", profilePicUid), {
             profilePic: gsUrl,
           });
+          alert("Profile picture updated successfully!");
+          
+          // Reset form
+          setImagePreview(null);
+          setShowCropper(false);
+          setCropData({ x: 0, y: 0, width: 0, height: 0, scale: 1 });
+          setIsDragging(false);
+          setIsResizing(false);
+          const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
+          if (fileInput) fileInput.value = '';
         } catch (error) {
           if (error instanceof Error) {
             console.error(
@@ -490,15 +863,14 @@ const AdminPanel = () => {
             );
           }
         }
-        alert("Profile picture updated successfully!");
       } catch (error) {
         if (error instanceof Error) {
-          console.error("Error uploading image: ", error);
-          alert("Failed to upload image: " + error.message);
+          console.error("Error processing image: ", error);
+          alert("Failed to process image: " + error.message);
         }
       }
     } else {
-      alert("Please provide both a user ID and a profile picture.");
+      alert("Please provide a user ID, select an image, and crop it before uploading.");
     }
   };
   
@@ -873,8 +1245,9 @@ const AdminPanel = () => {
               className="border border-gray-300 rounded-lg p-2 w-full"
               type="text"
               id="uid"
-              value={uid}
-              onChange={(e) => setUid(e.target.value)}
+              value={displayNameUid}
+              onChange={(e) => setDisplayNameUid(e.target.value)}
+              autoComplete="off"
               required
             />
           </div>
@@ -886,6 +1259,7 @@ const AdminPanel = () => {
               id="displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              autoComplete="off"
               required
             />
           </div>
@@ -902,8 +1276,9 @@ const AdminPanel = () => {
               className="border border-gray-300 rounded-lg p-2 w-full"
               type="text"
               id="uid"
-              value={uid}
-              onChange={(e) => setUid(e.target.value)}
+              value={profilePicUid}
+              onChange={(e) => setProfilePicUid(e.target.value)}
+              autoComplete="off"
               required
             />
           </div>
@@ -914,29 +1289,344 @@ const AdminPanel = () => {
               type="file"
               id="profilePicture"
               onChange={handleImageChange}
-              required
+              accept="image/*"
+              required={!imagePreview}
             />
+            <p className="text-xs text-gray-500">
+              Image will be cropped to a square and converted to WebP format (up to 1000×1000 pixels)
+            </p>
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200">Update Profile Picture</button>
+
+          {/* Image Cropping Interface */}
+          {showCropper && imagePreview && (
+            <div className="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <h3 className="font-semibold text-gray-700">Crop Profile Picture (Square Only)</h3>
+              
+              {/* Image Preview Container */}
+              <div 
+                className="relative max-w-md mx-auto bg-white rounded border select-none"
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                <img
+                  id="cropImage"
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-w-full h-auto max-h-80 mx-auto pointer-events-none"
+                  onLoad={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    if (!img.parentElement) return;
+                    
+                    // Get actual displayed image dimensions
+                    const imageDisplayWidth = img.clientWidth;
+                    const imageDisplayHeight = img.clientHeight;
+                    const containerWidth = img.parentElement.clientWidth;
+                    const containerHeight = img.parentElement.clientHeight;
+                    
+                    // Calculate offset from container to image
+                    const imageOffsetX = Math.max(0, (containerWidth - imageDisplayWidth) / 2);
+                    const imageOffsetY = Math.max(0, (containerHeight - imageDisplayHeight) / 2);
+                    
+                    // Calculate crop size (largest square that fits in the image)
+                    const size = Math.min(imageDisplayWidth, imageDisplayHeight);
+                    
+                    // Center the crop area within the actual image bounds
+                    const x = imageOffsetX + (imageDisplayWidth - size) / 2;
+                    const y = imageOffsetY + (imageDisplayHeight - size) / 2;
+                    
+                    updateCropArea({
+                      x: x,
+                      y: y,
+                      width: size,
+                      height: size
+                    });
+                  }}
+                />
+                
+                {/* Crop Overlay */}
+                <div
+                  className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-10 cursor-move"
+                  style={{
+                    left: `${cropData.x}px`,
+                    top: `${cropData.y}px`,
+                    width: `${cropData.width}px`,
+                    height: `${cropData.height}px`,
+                    minWidth: '50px',
+                    minHeight: '50px',
+                  }}
+                  onMouseDown={handleMouseDown}
+                >
+                  {/* Corner handles */}
+                  <div 
+                    className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 cursor-nw-resize hover:bg-blue-600"
+                    onMouseDown={(e) => handleCornerMouseDown(e, 'nw')}
+                  ></div>
+                  <div 
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 cursor-ne-resize hover:bg-blue-600"
+                    onMouseDown={(e) => handleCornerMouseDown(e, 'ne')}
+                  ></div>
+                  <div 
+                    className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 cursor-sw-resize hover:bg-blue-600"
+                    onMouseDown={(e) => handleCornerMouseDown(e, 'sw')}
+                  ></div>
+                  <div 
+                    className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 cursor-se-resize hover:bg-blue-600"
+                    onMouseDown={(e) => handleCornerMouseDown(e, 'se')}
+                  ></div>
+                  
+                  {/* Center indicator */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full opacity-50"></div>
+                </div>
+              </div>
+
+              {/* Crop Controls */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                  <div className="text-sm text-gray-600">
+                    X: {Math.round(cropData.x)}px, Y: {Math.round(cropData.y)}px
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Drag the blue box to move
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Crop Size</label>
+                  <input
+                    type="range"
+                    min="50"
+                    max={(() => {
+                      const img = document.getElementById('cropImage') as HTMLImageElement;
+                      if (!img) return 500;
+                      return Math.min(img.clientWidth, img.clientHeight);
+                    })()}
+                    value={cropData.width}
+                    onChange={(e) => {
+                      const newSize = parseInt(e.target.value);
+                      updateCropArea({ width: newSize, height: newSize });
+                    }}
+                    className="w-full"
+                  />
+                  <div className="text-xs text-gray-500">
+                    {(() => {
+                      const img = document.getElementById('cropImage') as HTMLImageElement;
+                      if (!img) return `${Math.round(cropData.width)}×${Math.round(cropData.width)}px`;
+                      
+                      const scaleX = img.naturalWidth / img.clientWidth;
+                      const actualCropSize = Math.round(cropData.width * scaleX);
+                      const maxOutputSize = 1000;
+                      const finalSize = Math.min(actualCropSize, maxOutputSize);
+                      
+                      if (actualCropSize <= maxOutputSize) {
+                        return `Output: ${finalSize}×${finalSize}px`;
+                      } else {
+                        return `Crop: ${actualCropSize}×${actualCropSize}px → ${finalSize}×${finalSize}px`;
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center bg-blue-50 p-3 rounded">
+                <div className="text-sm font-medium text-gray-700 mb-1">
+                  {(() => {
+                    const img = document.getElementById('cropImage') as HTMLImageElement;
+                    if (!img) return 'Output Resolution: ?×? pixels WebP';
+                    
+                    const scaleX = img.naturalWidth / img.clientWidth;
+                    const actualCropSize = Math.round(cropData.width * scaleX);
+                    const maxOutputSize = 1000;
+                    const finalSize = Math.min(actualCropSize, maxOutputSize);
+                    
+                    if (actualCropSize <= maxOutputSize) {
+                      return `Output Resolution: ${finalSize}×${finalSize} pixels WebP`;
+                    } else {
+                      return `Crop: ${actualCropSize}×${actualCropSize} → Output: ${finalSize}×${finalSize} pixels WebP`;
+                    }
+                  })()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  💡 Drag the square to move • Drag corners to resize • Use slider above<br/>
+                  {(() => {
+                    const img = document.getElementById('cropImage') as HTMLImageElement;
+                    if (!img) return 'Crop from original, max output 1000×1000';
+                    
+                    const scaleX = img.naturalWidth / img.clientWidth;
+                    const actualCropSize = Math.round(cropData.width * scaleX);
+                    const maxOutputSize = 1000;
+                    
+                    if (actualCropSize <= maxOutputSize) {
+                      return 'Pure crop: You get exactly what you select from the original image';
+                    } else {
+                      return 'Crop from original, then scaled down to fit 1000×1000 limit';
+                    }
+                  })()}
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCropper(false);
+                    setImagePreview(null);
+                    setIsDragging(false);
+                    setIsResizing(false);
+                    setCropData({ x: 0, y: 0, width: 0, height: 0, scale: 1 });
+                    const fileInput = document.getElementById('profilePicture') as HTMLInputElement;
+                    if (fileInput) fileInput.value = '';
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Center the crop area
+                    const img = document.getElementById('cropImage') as HTMLImageElement;
+                    if (img && img.parentElement) {
+                      // Get actual displayed image dimensions
+                      const imageDisplayWidth = img.clientWidth;
+                      const imageDisplayHeight = img.clientHeight;
+                      const containerWidth = img.parentElement.clientWidth;
+                      const containerHeight = img.parentElement.clientHeight;
+                      
+                      // Calculate offset from container to image
+                      const imageOffsetX = Math.max(0, (containerWidth - imageDisplayWidth) / 2);
+                      const imageOffsetY = Math.max(0, (containerHeight - imageDisplayHeight) / 2);
+                      
+                      // Calculate crop size (largest square that fits in the image)
+                      const size = Math.min(imageDisplayWidth, imageDisplayHeight);
+                      
+                      // Center the crop area within the actual image bounds
+                      const x = imageOffsetX + (imageDisplayWidth - size) / 2;
+                      const y = imageOffsetY + (imageDisplayHeight - size) / 2;
+                      
+                      updateCropArea({
+                        x: x,
+                        y: y,
+                        width: size,
+                        height: size
+                      });
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
+                >
+                  Auto Center
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={!imagePreview || cropData.width === 0}
+            className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            Update Profile Picture
+          </button>
+          
+          {imagePreview && cropData.width === 0 && (
+            <p className="text-yellow-600 text-sm">Please adjust the crop area before uploading.</p>
+          )}
         </form>
       </div>
-      {/* Set user as admin */}
+
+      {/* Manage Admins */}
       <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-6 space-y-6">
-        <form onSubmit={setAdmin} className="space-y-4">
-          <h1 className="mb-3 text-2xl font-semibold text-center">Set User as Admin</h1>
-          <div className="space-y-2">
-            <label htmlFor="uid" className="block text-gray-700 font-semibold">User ID</label>
-            <input
-              className="border border-gray-300 rounded-lg p-2 w-full"
-              type="text"
-              id="uid"
-              value={uid}
-              onChange={(e) => setUid(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200">Set Admin</button>
-        </form>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">Manage Admins</h1>
+          <button
+            onClick={fetchAdmins}
+            disabled={adminsLoading}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200 disabled:bg-gray-400"
+          >
+            {adminsLoading ? 'Loading...' : 'Refresh Admins'}
+          </button>
+        </div>
+
+        <div className="space-y-3 max-h-[30rem] overflow-y-auto">
+          {admins.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No admin users found</p>
+          ) : (
+            admins.map((admin) => (
+              <div key={admin.uid} className="border border-gray-200 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {admin.profilePic ? (
+                      <img
+                        src={admin.profilePic}
+                        alt={admin.displayName || admin.name || admin.username || admin.identifier || admin.email}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                        <span className="text-gray-600 font-semibold text-sm">
+                          {(admin.displayName || admin.name || admin.username || admin.identifier || admin.email || 'U').charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900">
+                        {admin.displayName || admin.name || admin.username || admin.identifier || admin.email || 'Unknown User'}
+                      </h3>
+                      <p className="text-sm text-gray-500">{admin.email || admin.identifier}</p>
+                      <p className="text-xs text-gray-400">UID: {admin.uid}</p>
+                      {admin.createdAt && (
+                        <p className="text-xs text-gray-400">
+                          Admin since: {new Date(admin.createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex justify-end">
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                        Admin
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveAdmin(admin.uid, admin.displayName || admin.name || admin.username || admin.identifier || admin.email || 'Unknown User')}
+                      className="bg-red-500 text-white text-sm px-4 py-2 rounded hover:bg-red-600 transition duration-200 min-w-[120px]"
+                      disabled={admin.uid === user?.uid} // Prevent removing own admin privileges
+                    >
+                      {admin.uid === user?.uid ? 'Self' : 'Remove Admin'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        {/* Add New Admin Form */}
+        <div className="border-t pt-4 mt-4">
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">Add New Admin</h3>
+          <form onSubmit={setAdmin} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="adminUid" className="block text-gray-700 font-semibold">User ID</label>
+              <input
+                className="border border-gray-300 rounded-lg p-2 w-full"
+                type="text"
+                id="adminUid"
+                value={adminUid}
+                onChange={(e) => setAdminUid(e.target.value)}
+                autoComplete="off"
+                placeholder="Enter user UID to make admin"
+                required
+              />
+            </div>
+            <button type="submit" className="w-full bg-green-500 text-white rounded-lg py-2 hover:bg-green-600 transition duration-200">
+              Add Admin
+            </button>
+          </form>
+        </div>
+        
+        {/* Success/Error messages for manage admins */}
+        {manageAdminError && <p className="text-red-500 text-sm mt-4">{manageAdminError}</p>}
+        {manageAdminSuccess && <p className="text-green-500 text-sm mt-4">{manageAdminSuccess}</p>}
       </div>
       {/*Upload Blandare*/}
       <AdminUploadPDF/>

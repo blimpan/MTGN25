@@ -6,6 +6,7 @@ import { db } from '../lib/firebaseConfig';
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import Image from 'next/image';
 import { Stardos_Stencil } from "next/font/google";
+import { getOrFetchUsers } from "../lib/sessionStorage";
 
 const stardos = Stardos_Stencil({
     weight: ['400', '700'], // Specify the weights you want to use
@@ -31,40 +32,14 @@ export default function PhosarGrupper() {
     const [users, setUsers] = useState<{ phosGroup: string }[]>([]);
     useEffect(() => {
         const fetchUsers = async () => {
-            
-            if (!user) { return <h1>Please login</h1>; } // If middleware.ts is working this should never be rendered
-
-            if (sessionStorage.getItem("users")) {
-                const usersData = sessionStorage.getItem("users");
-                if (usersData) {
-                    const parsedData = JSON.parse(usersData);
-                    setUsers(parsedData);
-                    console.log('Loaded users from sessionStorage:')
-                    return;
-                }
-            } else { // If sessionStorage is empty, fetch from API
-            
-                const token = await user.getIdToken();
-                try {
-                    const response = await fetch('/api/getUsers', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setUsers(data);
-                        console.log('Fetched users from API')
-                        sessionStorage.setItem("users", JSON.stringify(data));
-                    } else {
-                        console.error('Failed to fetch users');
-                    }
-                } catch (error) {
-                    console.error('Error fetching users:', error);
-                }
-            };
-        }
+            if (!user) return;
+            try {
+                const data = await getOrFetchUsers(user);
+                setUsers(data);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
         fetchUsers();
     }, [user]);
 
@@ -147,16 +122,32 @@ export default function PhosarGrupper() {
             <div className={containerClasses}>
                     {electusUsers.map((user, index) => (
                         <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact, group)} key={index} className={electusClasses}>
-                            <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
-                            <h1 className={`text-almost-black text-xs font-medium pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
+                            <img 
+                                src={user.profilePic} 
+                                alt={user.name} 
+                                className="w-full aspect-square rounded-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/defaultprofile.svg';
+                                }}
+                            />
+                            <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
             </div>    
                 <div className="grid grid-cols-3 gap-4 lg:grid-cols-4 2xl:grid-cols-5 mt-4">
                     {phosUsers.map((user, index) => (
                         <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact, group)} key={index} className={userClasses}>
-                            <img src={user.profilePic} alt={user.name} className="w-full aspect-square rounded-lg" />
-                            <h1 className={`text-black text-xs font-medium pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
+                            <img 
+                                src={user.profilePic} 
+                                alt={user.name} 
+                                className="w-full aspect-square rounded-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/defaultprofile.svg';
+                                }}
+                            />
+                            <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
                 </div>
@@ -170,10 +161,19 @@ export default function PhosarGrupper() {
     return (
         <main className={`min-h-screen transition-colors duration-300 ${rsaOpen ? 'bg-black' : 'bg-gradient-stars'}`}>
             <div>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
-            <div onClick={togglePopUpBool} className='flex items-center justify-center'>
-                <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow ${popUpBool ? "" : "opacity-0 hidden"}`}>
-                    <div className="bg-[#F7F7F3] p-8 rounded-lg shadow-boxshadow hover:bg-[#FDFDFD]">
-                        <img src={popUpPic} className="w-full aspect-square rounded-lg" />
+            <div onClick={togglePopUpBool} className='flex items-center justify-center '>
+                <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
+                    <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
+                        <img 
+                            src={popUpPic} 
+                            className="w-full aspect-square rounded-lg"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (target.src !== '/denied.gif') { // Don't fallback if it's already the denied gif
+                                    target.src = '/defaultprofile.svg';
+                                }
+                            }}
+                        />
                         <h1 className="text-black text-xl font-bold p-1">{popUpName}</h1>
                         <h1 className="text-black">{funFactText} {popUpFunFact}</h1>
                     </div>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, auth, storage } from '../../lib/firebaseAdmin'; 
-import { profile } from 'console';
+import { db, auth, storage } from '../../lib/firebaseAdmin';
 
 export async function GET(req: NextRequest, res: NextResponse) {
     const authHeader = req.headers.get('Authorization');
@@ -58,15 +57,49 @@ export async function GET(req: NextRequest, res: NextResponse) {
         //console.log("PROFILE PIC MAP: ", profilePicMap);
 
         // pair up the user with corresponding profilepicture URLs and add them to users array of dictonaries
-        users = users.map(user => {
+        users = await Promise.all(users.map(async (user) => {
             const id = user.id;
-            const pictureUrl = id ? profilePicMap[id] : null;
+            let pictureUrl = '/defaultprofile.svg'; // Default first
+            
+            // First try to get from Firestore (supports any format)
+            try {
+                const userDoc = await db.collection('users').doc(id).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData?.profilePic) {
+                        try {
+                            // Generate signed URL for the profile picture from Firestore path
+                            const file = storage.bucket().file(userData.profilePic.replace('gs://mottagningen-7063b.appspot.com/', ''));
+                            
+                            // Check if file exists before generating signed URL
+                            const [exists] = await file.exists();
+                            if (exists) {
+                                const [url] = await file.getSignedUrl({
+                                    action: 'read',
+                                    expires: '03-09-2491'
+                                });
+                                pictureUrl = url;
+                            }
+                        } catch (error) {
+                            console.error(`Error getting profile picture from Firestore for user ${id}:`, error);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error accessing Firestore for user ${id}:`, error);
+            }
+            
+            // Fallback to old method (WebP only) if Firestore method didn't find a file
+            if (pictureUrl === '/defaultprofile.svg' && profilePicMap[id + '.webp']) {
+                pictureUrl = profilePicMap[id + '.webp'];
+            }
+            
             return {
                 ...user,
-                profilePic: pictureUrl || '/defaultprofile.svg'// replace profilePic with the URL with promise
+                profilePic: pictureUrl
             };
-        });
-        
+        }));
+
         return NextResponse.json( users );
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });

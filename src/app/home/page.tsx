@@ -13,6 +13,7 @@ import EventCard from "../components/EventCard";
 import AnslagCard from "../components/AnslagCard";
 import { NextRequest, NextResponse } from "next/server";
 import EmojiModal from "../components/EmojiModal";
+import { getOrFetchUsers } from "../lib/sessionStorage";
 
 const gasqueImage = "/gasqueImg.png";
 const homeGradient = "/homeGradient.jpg"
@@ -140,55 +141,15 @@ export default function Home() {
     }, [user]);
 
     useEffect(() => {
-        async function fetchUsers() { // Fetch users and save them to sessionStorage to save time when loading other pages
-            
-            if (!user) { return } // If middleware.ts is working this should never executed
-            
-            if (sessionStorage.getItem("users")) {
-                const usersData = sessionStorage.getItem("users");
-
-                if (usersData) {
-                    console.log('User data already in sessionStorage')
-                    return;
-                }
-
-            } else { // If user data in sessionStorage is empty, fetch from API
-
-                const token = await user.getIdToken();
-                
-                try {
-                    const response = await fetch('/api/getUsers', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log('Fetched users from API')
-                        sessionStorage.setItem("users", JSON.stringify(data));
-                    } else {
-                        console.error('Failed to fetch users', response.status, response.statusText);
-                    }
-                } catch (error) {
-                    console.error('Error fetching users:', error);
-                }
+        async function fetchUsers() {
+            if (!user) return;
+            try {
+                await getOrFetchUsers(user);
+            } catch (error) {
+                console.error('Error prefetching users:', error);
             }
         }
         fetchUsers();
-    }, [events]); // Start fetching users after events have been fetched
-
-    useEffect(() => {
-        //console.log("Posts");
-        //console.log(posts);
-
-    }, [posts]);
-
-    useEffect(() => {
-        //console.log("Events");
-        //console.log(events);
-
     }, [events]);
 
     const [showModal, setShowModal] = useState(false);
