@@ -1,40 +1,46 @@
-import LinearProgress from '@mui/material/LinearProgress';
-import { useCallback, useEffect, useState } from 'react';
-import HTMLFlipBook from 'react-pageflip';
-import { Document, Page, pdfjs } from 'react-pdf';
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
+import React, { useState, useEffect } from 'react';
 import useResizeObserver from 'use-resize-observer';
+import dynamic from 'next/dynamic';
 
-function Flipbook({ src }: { src: string }) {
-    const [numPages, setNumPages] = useState<number | null>(null);
-    const [aspectRatio, setAspectRatio] = useState<number>(1.414); // default A5 aspect ratio (height/width)
+const HTMLFlipBook = dynamic(
+  async () => (await import('react-pageflip')).default,
+  { ssr: false }
+) as any;
 
-    // Responsive width
-    const { ref, width = 2000 } = useResizeObserver<HTMLDivElement>();
-    const pageWidth = width;
-    const pageHeight = pageWidth * aspectRatio;
+export default function Flipbook({ images, aspectRatio = 1.414 }: { images: string[]; aspectRatio?: number }) {
+      const [numPages, setNumPages] = useState<number | null>(null);
+    const { ref, width = 800 } = useResizeObserver<HTMLDivElement>();
+  const pageWidth = width;
+  const pageHeight = pageWidth * aspectRatio;
     const [transform, setTransform] = useState<any>(0); // Initial transform to center the flipbook
+    const [allLoaded, setAllLoaded] = useState(false);
 
-    // Set the worker source for PDF.js using CDN for Next.js/Vercel compatibility
-    pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
+    useEffect(() => {
+        let loaded = 0;
+        if (images.length === 0) {
+            setAllLoaded(true);
+            return;
+        }
+        setAllLoaded(false);
+        images.forEach((src) => {
+            const img = new window.Image();
+            img.onload = () => {
+                loaded += 1;
+                if (loaded === images.length) setAllLoaded(true);
+            };
+            img.onerror = () => {
+                loaded += 1;
+                if (loaded === images.length) setAllLoaded(true);
+            };
+            img.src = src;
+        });
+    }, [images]);
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
         setNumPages(numPages);
         setTransform(-pageWidth / 4); // Center the flipbook initially
     }
-
-    // Only update aspect ratio, not width/height
-    function onPageLoadSuccess(page: any) {
-        if (page.originalWidth && page.originalHeight) {
-            setAspectRatio(page.originalHeight / page.originalWidth);
-        }
-    }
-
-    // This function is called when the page animation ends, to determine if the current page is the first or last
-    // and adjust the transform accordingly
-    const checkCurrentPage = (e: any) => {
+  const checkCurrentPage = (e: any) => {
         if (numPages == null) {
             setTransform(0);
             return;
@@ -48,69 +54,46 @@ function Flipbook({ src }: { src: string }) {
         }
     }
 
-    return (
-        // This div determines the size of the flipbook, whereas "max-w-7xl" is the acual width of the whole flipbook
-        // so a single page is supposedly half of the size determined by this div
-        // see tailwind max width for other sizes if desired
-        <div ref={ref} className="w-full max-w-7xl mx-auto mb-8" style={{ transform: "translateX(" + transform + "px)", transition: "transform .5s" }} >
-            <Document
-                file={src}
-                onLoadSuccess={onDocumentLoadSuccess}
-                loading={<LinearProgress />}
-                noData={<LinearProgress />}
-            > {/*The actual rendering of the pdf happens here, with a load animation for big files  */}
-                {numPages && (
-
-                    <HTMLFlipBook
-                        width={pageWidth}
-                        height={pageHeight}
-                        maxHeight={pageHeight}
-                        minHeight={pageHeight}
-                        maxWidth={pageWidth}
-                        minWidth={pageWidth}
-                        maxShadowOpacity={0.5}
-                        drawShadow={true}
-                        showCover={true}
-                        size="stretch"
-                        style={{ width: "100%", height: "auto" }}
-                        onFlip={checkCurrentPage}
-                        className="flipbook"
-                        startPage={0}
-                        flippingTime={1000}
-                        usePortrait={false}
-                        mobileScrollSupport={true}
-                        clickEventForward={true}
-                        useMouseEvents={true}
-                        renderOnlyPageLengthChange={false}
-                        disableFlipByClick={false}
-                        onChangeOrientation={() => {}}
-                        onChangeState={() => {}}
-                        startZIndex={0}
-                        autoSize={true}
-                        swipeDistance={30}
-                        showPageCorners={true}
-                    > {/* The actual flipbook component, which handles the flip animation and the pages */}
-                        {Array.from(new Array(numPages), (el, index) => (
-
-                            <div
-                                className="demoPage"
-                                key={`page_${index + 1}`}
-                                style={{
-                                    width: pageWidth,
-                                    height: pageHeight,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >  {/* This div className "demoPage" is used within the flipbook animation library and is used to display the flip properly*/}
-                                <Page pageNumber={index + 1} width={pageWidth / 2} />
-                            </div>
-                        ))}
-                    </HTMLFlipBook>
-                )}
-            </Document>
-        </div >
-    );
+  return (
+    <div
+      ref={ref}
+      className="w-full md:max-w-3xl xxl:max-w-7xl mx-auto mb-8"
+    >
+      {allLoaded && images.length > 0 && pageWidth > 0 && pageHeight > 0 && (
+        <HTMLFlipBook
+          width={pageWidth}
+          height={pageHeight}
+          size="stretch"
+          maxShadowOpacity={0.5}
+          drawShadow={false}
+          showCover={true}
+          onFlip={checkCurrentPage}
+          animationDuration={1200} 
+        >
+          {images.map((imgUrl, idx) => (
+            <div
+              key={idx}
+              className="demoPage"
+              style={{
+                width: pageWidth,
+                height: pageHeight,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <img
+                src={imgUrl}
+                alt={`Page ${idx + 1}`}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                loading="eager"
+              />
+            </div>
+          ))}
+        </HTMLFlipBook>
+      )}
+      {!allLoaded && <div className="text-center py-10">Loading pages...</div>}
+    </div>
+  );
 }
 
-export default Flipbook;
