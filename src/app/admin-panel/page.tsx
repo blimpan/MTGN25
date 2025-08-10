@@ -5,6 +5,7 @@ import { ref, uploadBytes } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { storage, db } from '../lib/firebaseConfig';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import AdminUploadPDF from '../components/AdminUploadPDF';
 
 /* Admin page for updating user information, posting new posts and more */
 const AdminPanel = () => {
@@ -1627,6 +1628,8 @@ const AdminPanel = () => {
         {manageAdminError && <p className="text-red-500 text-sm mt-4">{manageAdminError}</p>}
         {manageAdminSuccess && <p className="text-green-500 text-sm mt-4">{manageAdminSuccess}</p>}
       </div>
+      {/*Upload Blandare*/}
+      <AdminUploadPDF/>
     </main>
   );
 };

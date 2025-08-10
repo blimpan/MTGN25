@@ -82,7 +82,7 @@ export default function N0llegrupper() {
             
                 <button
                     onClick={() => toggleGroupBool(index)}
-                    className="relative bg-cover bg-center bg-almost-black text-white font-medium text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap hover:bg-gray-900 shadow-pink-glow"
+                    className="relative bg-cover bg-center bg-almost-black shadow-pink-glow text-white font-medium text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap hover:bg-gray-900 shadow-pink-glow"
                     style={{ backgroundImage: `url('/n0llegrupper-images/${group}-Cover.webp')` }}
                     >
                     &nbsp;
@@ -118,7 +118,7 @@ export default function N0llegrupper() {
                             ))}
 
                         </div>
-                        <div className="grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 mt-4">
+                        <div className="grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 mt-4 ">
                             {kphUsers.map((user, index) => (
                                 <button onClick={() => showUserProfile(user.profilePic, user.name, user.funFact)} key={index} className="bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200">
                                 <img 

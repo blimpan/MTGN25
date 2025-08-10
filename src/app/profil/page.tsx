@@ -99,6 +99,10 @@ const Home = () => {
         event.preventDefault();
         if (user) {
             const userProfileRef = doc(db, "users", user.uid);
+            if (inputFact.length > 45){
+                alert("Fun fact: Du har för lång fun fact! 👁3👁")
+                return
+            }
             try {
                 await setDoc(userProfileRef, { funFact: inputFact }, { merge: true });
                 setFunFact(inputFact); 

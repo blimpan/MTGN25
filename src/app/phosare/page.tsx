@@ -105,12 +105,12 @@ export default function PhosarGrupper() {
 
         // Specific styling for RSA, including the Stardos font
         const containerClasses = group === "RSA" ? "grid grid-cols-1 gap-4 mb-3 sm:mx-20 2xl:mx-64 justify-center" : "grid grid-cols-2 gap-4 mb-3 sm:mx-20 2xl:mx-64 justify-center";
-        const electusClasses = group === "RSA" ? `bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200 ${stardos.className}` : "bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200";
-        const userClasses = group === "RSA" ? `bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200 ${stardos.className}` : "bg-white p-2 rounded-lg drop-shadow hover:bg-slate-200";
+        const electusClasses = group === "RSA" ? `bg-slate-50 p-2 rounded-lg hover:bg-slate-300 ${stardos.className}` : "bg-[#F7F7F3] p-2 rounded-lg drop-shadow shadow-pink-glow hover:bg-[#FDFDFD]";
+        const userClasses = group === "RSA" ? `bg-slate-50 p-2 rounded-lg drop-shadow hover:bg-slate-300 ${stardos.className}` : "bg-[#F7F7F3] p-2 rounded-lg drop-shadow shadow-pink-glow  hover:bg-[#FDFDFD]";
 
         return (
         <div key={group + "1"} className='flex items-center flex-col mx-7 sm:mx-16 md:mx-32 lg:mx-64 xl:mx-96'>
-            <button onClick={() => toggleGroupBool(index, group)} className={`bg-white text-black font-normal text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap drop-shadow hover:bg-slate-200 ${group === "RSA" ? stardos.className : ''}`}>{group}
+            <button onClick={() => toggleGroupBool(index, group)} className={`bg-almost-black text-amber-50 font-normal text-xl mt-4 rounded-lg w-full py-4 whitespace-nowrap drop-shadow shadow-pink-glow hover:bg-black ${group === "RSA" ? stardos.className : ''}`}>{group}
                 <div className='text-right pr-3 pb-3 h-2'>
                     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
                     {groupBool[index] ? <i className="material-symbols-outlined">arrow_drop_up</i> : <i className="material-symbols-outlined">arrow_drop_down</i>}
