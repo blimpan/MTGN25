@@ -3,7 +3,8 @@ import { FormEvent, useEffect, useState } from 'react';
 import useAuth from "../components/useAuth";
 import { doc, getDoc, setDoc, collection, getDocs, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebaseConfig';
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+
+import { getOrFetchUsers } from "../lib/sessionStorage";
 
 
 export default function N0llegrupper() {
@@ -23,41 +24,13 @@ export default function N0llegrupper() {
     const [users, setUsers] = useState<{ group: string }[]>([]);
     useEffect(() => {
         const fetchUsers = async () => {
-
-            if (!user) { return } // If middleware.ts is working this should never be executed
-            
-            if (sessionStorage.getItem("users")) {
-                const usersData = sessionStorage.getItem("users");
-                if (usersData) {
-                    const parsedData = JSON.parse(usersData);
-                    setUsers(parsedData);
-                    console.log('Loaded users from sessionStorage:')
-                    return;
-                }
-            } else { // If sessionStorage is empty, fetch from API
-                
-                const token = await user.getIdToken();
-                try {
-                    const response = await fetch('/api/getUsers', {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        //console.log('Users:', data);
-                        setUsers(data);
-                        console.log('Fetched users from API')
-                        sessionStorage.setItem("users", JSON.stringify(data));
-                    } else {
-                        console.error('Failed to fetch users');
-                    }
-                } catch (error) {
-                    console.error('Error fetching users:', error);
-                }
+            if (!user) return;
+            try {
+                const data = await getOrFetchUsers(user);
+                setUsers(data);
+            } catch (error) {
+                console.error('Error fetching users:', error);
             }
-
         };
         fetchUsers();
     }, [user]);
