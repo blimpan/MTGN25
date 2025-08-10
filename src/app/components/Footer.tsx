@@ -8,13 +8,20 @@ export default function Footer() {
     return (
         <footer className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex flex-wrap justify-start items-center">
-                <p className="pr-2">&copy; {new Date().getFullYear()} MTGN24. All rights reserved.</p>
-                <p className="pr-2">Sponsorer:</p>
-                <div className="flex flex-wrap items-center space-x-1 sm:space-x-3">
-                    <Image className="pr-2 mb-2" src="/skry.svg" alt="SKRY" width={90} height={50} />
-                    <Image className="pr-2 mb-2" src="/si.png" alt="Sveriges Ingenjörer" width={160} height={50} />
-                    <Image className="pr-2 mb-2" src="/svt.png" alt="SVT" width={55} height={50} />
-                    <Image className="pr-2 mb-1" src="/mpya.svg" alt="MPYA" width={90} height={50} />
+                <p className="pr-2">&copy; {new Date().getFullYear()} MTGN25. All rights reserved.</p>
+                <div className="flex flex-wrap items-center">
+                    <div className="w-full md:w-auto"></div>
+                    <Image className="pr-2 mb-2" src="/instagram_logo.svg" alt="Instagram Logo" width={35} height={35}/>
+                    <Link href="https://instagram.com/inphogram" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">INPHO</Link>
+                    <Link href="https://instagram.com/kphgram" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">KPH</Link>
+                    <Link href="https://instagram.com/sanglekarna" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">LEK</Link>
+                    <Link href="https://instagram.com/mastarrchef" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">ARR</Link>
+                    <Link href="https://instagram.com/phlexgo" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">PHLEX</Link>
+                    <Link href="https://instagram.com/ofverphoseriet" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">ÖPH</Link>
+                    <Link href="https://instagram.com/vraqueogram/" className="sm:mr-3 px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">VRAQUE</Link>
+                    <div className="w-full md:w-auto"></div>
+                    <Image className="lg:ml-2 mt-2 pr-2 mb-2" src="/yt-logo.svg" alt="Youtube Logo" width={35} height={35}/>
+                    <Link href="https://www.youtube.com/@FilmnamndenMedieteknik" className="px-1 py-1 text-shadow-pink-glow hover:scale-105 transition-transform duration-200">Filmprojektet | Filmnämnden</Link>
                 </div>
             </div>
         </footer>

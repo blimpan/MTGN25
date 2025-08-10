@@ -8,6 +8,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        "almost-black": "#151319",
+        "darker-purple": "#5C1E76",
+        "lighter-purple": "#6C337E",
+        "light-yellow": "#FFF9DB",
+        "lavender": "#C9ACD2",
+      },
       screens: {
         'portrait': {'raw': '(orientation: portrait)'},
         'landscape': {'raw': '(orientation: landscape)'}
@@ -18,8 +25,11 @@ const config: Config = {
         "homeGradientImg": "url('/home-gradient.jpg')",
       },
       dropShadow: {
-        // 'name': 'x-offset y-offset blur-radius color'
+        // 'name': 'x-offset y-offset blur-radius spread color'
         'homeShadow': '0 4px 2px rgba(0, 0, 0, 0.3)',
+      },
+      boxShadow: {
+        'pink-glow': '0px 0px 15px 2px rgba(242, 136, 198, 0.6)',
       },
       keyframes: {
         fadeIn: {

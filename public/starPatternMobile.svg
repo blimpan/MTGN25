@@ -1,0 +1,11 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 375 250" width="375" height="250">
+	<title>starPattern</title>
+	<defs>
+		<image width="23" height="38" id="img1" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjMiIGhlaWdodD0iMzgiIHZpZXdCb3g9IjAgMCAyMyAzOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggb3BhY2l0eT0iMC4yMyIgZD0iTTExLjUgMEMxMS41IDAgMTIuMTAyMiAxNC43MDA4IDEyLjgwMTEgMTYuODUwNEMxMy41IDE5IDIzIDE5IDIzIDE5QzIzIDE5IDEzLjUgMTkgMTIuODAxMSAyMS4xNDk2QzEyLjEwMjIgMjMuMjk5MiAxMS41IDM4IDExLjUgMzhDMTEuNSAzOCAxMC44OTc4IDIzLjI5OTIgMTAuMTk4OSAyMS4xNDk2QzkuNSAxOSAwIDE5IDAgMTlDMCAxOSA4Ljg5MjAzIDE5IDEwLjE5ODkgMTYuODUwNEMxMS41MDU4IDE0LjcwMDggMTEuNSAwIDExLjUgMFoiIGZpbGw9IiNDOUFDRDIiLz4KPC9zdmc+Cg=="/>
+	</defs>
+	<style>
+	</style>
+	<use id="img1" href="#img1" transform="matrix(1,0,0,1,352,167)"/>
+	<use id="img1" href="#img1" transform="matrix(1,0,0,1,0,31)"/>
+	<use id="img1 copy" href="#img1" transform="matrix(1,0,0,1,175,106)"/>
+</svg>

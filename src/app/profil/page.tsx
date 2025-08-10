@@ -99,6 +99,10 @@ const Home = () => {
         event.preventDefault();
         if (user) {
             const userProfileRef = doc(db, "users", user.uid);
+            if (inputFact.length > 45){
+                alert("Fun fact: Du har för lång fun fact! 👁3👁")
+                return
+            }
             try {
                 await setDoc(userProfileRef, { funFact: inputFact }, { merge: true });
                 setFunFact(inputFact); 
@@ -127,7 +131,7 @@ const Home = () => {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0] p-10">
+        <main className="flex min-h-screen flex-col items-center bg-gradient-stars p-10">
             <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 space-y-6">
                 {profilePic && (
                     <div className="flex justify-center mb-4">
@@ -145,14 +149,14 @@ const Home = () => {
                         type="text"
                         value={inputFact}
                         onChange={(e) => setInputFact(e.target.value)}
-                        placeholder="Update Fun Fact"
+                        placeholder="Uppdatera fun fact"
                         required
                     />
                     <button 
                         type="submit"
                         className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200"
                     >
-                        Update Fun Fact
+                        Uppdatera fun fact
                     </button>
                 </form>
             </div>
@@ -163,29 +167,29 @@ const Home = () => {
                         className="border border-gray-300 rounded-lg p-2 w-full"
                         type="password"
                         onChange={(e) => setInputPassword(e.target.value)}
-                        placeholder="New Password"
+                        placeholder="Nytt lösenord"
                         required
                     />
                     <input
                         className="border border-gray-300 rounded-lg p-2 w-full"
                         type="password"
                         onChange={(e) => setInputPassword1(e.target.value)}
-                        placeholder="Confirm New Password"
+                        placeholder="Bekräfta nytt lösenord"
                         required
                     />
                     <button 
                         type="submit"
                         className="w-full bg-blue-500 text-white rounded-lg py-2 hover:bg-blue-600 transition duration-200"
                     >
-                        Change Password
+                        Byt lösenord
                     </button>
                 </form>
             </div>
 
             {isAdmin && (
-                <div className="w-full max-w-md mt-6">
-                    <Link href="/updateUser" className="w-full text-center bg-green-500 text-white rounded-lg py-2 block hover:bg-green-600 transition duration-200">
-                        Update User
+                <div className="w-full max-w-md mt-6 flex justify-center">
+                    <Link href="/admin-panel" className="w-3/5 text-center bg-green-500 text-white rounded-lg py-2 block hover:bg-green-600 transition duration-200">
+                        Öppna adminpanel
                     </Link>
                 </div>
             )}

@@ -5,14 +5,13 @@ import Header from "./components/Header";
 import { AuthProvider } from "./components/useAuth";
 import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/react"
-import FloatingButton from "./components/FloatingButton";
 
 const inter = Inter({ subsets: ["latin"] });
 const rubik = Rubik({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MTGN24",
-  description: "Official website for Mottagningen 2024",
+  title: "MTGN25",
+  description: "Mottagningen 2025",
 };
 
 export default function RootLayout({
@@ -24,10 +23,11 @@ export default function RootLayout({
     <AuthProvider>
       <Analytics/>
       <html lang="en">
-        <body className={"max-w-full " + rubik.className}>
+        <body className={"max-w-full bg-gradient-stars " + rubik.className}>
           <Header />
-          {children}
-          <FloatingButton/>
+          <div className="pt-16"> {/* Push everything else down so they dont render behind navbar unintentionally */}
+            {children}
+          </div>
           <Footer/>
         </body>
       </html>

@@ -13,6 +13,7 @@ import EventCard from "../components/EventCard";
 import AnslagCard from "../components/AnslagCard";
 import { NextRequest, NextResponse } from "next/server";
 import EmojiModal from "../components/EmojiModal";
+import { getOrFetchUsers } from "../lib/sessionStorage";
 
 const gasqueImage = "/gasqueImg.png";
 const homeGradient = "/homeGradient.jpg"
@@ -140,15 +141,15 @@ export default function Home() {
     }, [user]);
 
     useEffect(() => {
-        //console.log("Posts");
-        //console.log(posts);
-
-    }, [posts]);
-
-    useEffect(() => {
-        //console.log("Events");
-        //console.log(events);
-
+        async function fetchUsers() {
+            if (!user) return;
+            try {
+                await getOrFetchUsers(user);
+            } catch (error) {
+                console.error('Error prefetching users:', error);
+            }
+        }
+        fetchUsers();
     }, [events]);
 
     const [showModal, setShowModal] = useState(false);
@@ -160,11 +161,11 @@ export default function Home() {
     }
 
     return (
-        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-to-r from-[#A5CACE] to-[#4FC0A0]">
+        <main className="flex min-h-screen min-w-80 flex-col items-center bg-gradient-stars animate-fadeIn">
             <script src="https://apis.google.com/js/api.js" type="text/javascript"></script>
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl"> {/* EVENT MODULE */}
                 <div className="flex flex-row">
-                    <p className="font-semibold text-lg text-white drop-shadow-xl sm:text-2xl ml-1">Nästa event</p>
+                    <p className="font-semibold text-lg text-amber-50 drop-shadow-xl sm:text-2xl ml-1">Nästa event</p>
                     <p className="text-2xl drop-shadow-md sm:text-3xl ml-1">🥳</p>
                 </div>
                 <div className="flex flex-col space-y-5">
@@ -185,7 +186,7 @@ export default function Home() {
             </div>
             <div className="flex w-11/12 flex-col mt-5 md:mt-9 max-w-2xl mb-5"> {/* EVENT MODULE */}
             <div className="flex flex-row">
-                    <p className="font-semibold text-lg text-white drop-shadow-xl sm:text-2xl pl-1">Senaste anslag</p>
+                    <p className="font-semibold text-lg text-amber-50 drop-shadow-xl sm:text-2xl pl-1">Senaste anslag</p>
                     <p className="text-2xl drop-shadow-md sm:text-3xl ml-1">📣</p>
                 </div>
                 
