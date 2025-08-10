@@ -166,6 +166,7 @@ export default function PhosarGrupper() {
     return (
         <main className={`min-h-screen transition-colors duration-300 ${rsaOpen ? 'bg-black' : 'bg-gradient-stars'}`}>
             <div className='mt-3'>{groupsData.map((group, index) => groupSeparation(group, index))}</div>
+
             <div onClick={togglePopUpBool} className='flex items-center justify-center '>
                 <div className={`fixed aspect-square text-center top-20 h-1/3 sm:h-2/5 drop-shadow  ${popUpBool ? "" : "opacity-0 hidden"}`}>
                     <div className="bg-white p-8 rounded-lg shadow-lg hover:bg-slate-200">
