@@ -131,7 +131,7 @@ export default function PhosarGrupper() {
                                     target.src = '/defaultprofile.svg';
                                 }}
                             />
-                            <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
+                            <h1 className={`text-black text-xs pt-2 whitespace-normal ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
             </div>    
@@ -147,7 +147,7 @@ export default function PhosarGrupper() {
                                     target.src = '/defaultprofile.svg';
                                 }}
                             />
-                            <h1 className={`text-black text-xs pt-2 whitespace-nowrap ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
+                            <h1 className={`text-black text-xs pt-2 whitespace-normal ${group === "RSA" ? stardos.className : ''}`}>{user.name}</h1>
                         </button>
                     ))}
                 </div>

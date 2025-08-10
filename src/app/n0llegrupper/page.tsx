@@ -113,7 +113,7 @@ export default function N0llegrupper() {
                                             target.src = '/defaultprofile.svg';
                                         }}
                                     />
-                                    <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
+                                    <h1 className="text-black text-xs pt-2 whitespace-normal">{user.name}</h1>
                                 </button>
                             ))}
 
@@ -130,7 +130,7 @@ export default function N0llegrupper() {
                                         target.src = '/defaultprofile.svg';
                                     }}
                                 />
-                                <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
+                                <h1 className="text-black text-xs pt-2 whitespace-normal">{user.name}</h1>
                             </button>
                             ))}
                         </div>
@@ -146,7 +146,7 @@ export default function N0llegrupper() {
                                             target.src = '/defaultprofile.svg';
                                         }}
                                     />
-                                    <h1 className="text-black text-xs pt-2 whitespace-nowrap">{user.name}</h1>
+                                    <h1 className="text-black text-xs pt-2 whitespace-normal">{user.name}</h1>
                                 </button>
                             ))}
                         </div>
