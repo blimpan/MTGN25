@@ -8,7 +8,7 @@ export default function Footer() {
     return (
         <footer className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex flex-wrap justify-start items-center">
-                <p className="pr-2">&copy; {new Date().getFullYear()} MTGN24. All rights reserved.</p>
+                <p className="pr-2">&copy; {new Date().getFullYear()} MTGN25. All rights reserved.</p>
                 <div className="flex flex-wrap items-center">
                     <div className="w-full md:w-auto"></div>
                     <Image className="pr-2 mb-2" src="/instagram_logo.svg" alt="Instagram Logo" width={35} height={35}/>

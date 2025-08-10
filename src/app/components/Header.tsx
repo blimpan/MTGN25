@@ -11,8 +11,8 @@ const NAV_LINKS = [
   { href: "/n0llegrupper", label: "nØllegrupper", target: "_self" },
   { href: "/phosare", label: "Phösare", target: "_self" },
   { href: "/blandaren", label: "Bländare", target: "_self" },
-  { href: "/quiz", label: "Namn Quiz", target: "_self" },
-  { href: "https://forms.gle/zDnjmj2kjuQdgNFd9", label: "På-Hjärtat-Lådan", target: "_blank" }
+  { href: "/quiz", label: "Namnquiz", target: "_self" },
+  { href: "https://forms.gle/yWqqumMhmq96T6Sm7", label: "På-Hjärtat-Lådan", target: "_blank" }
 ];
 
 export default function Header() {
@@ -39,7 +39,7 @@ export default function Header() {
       >
         <Image
           src="/logo.png"
-          alt="MTGN24"
+          alt="MTGN25"
           width={32}
           height={32}
           className="mr-2 ml-4"
