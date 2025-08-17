@@ -32,7 +32,7 @@ const Bandaren = () => {
         if (response.ok) {
           const data = await response.json();
           // Expecting data to be an array of arrays of image URLs
-          setBlandare(data.reverse());
+          setBlandare(data);
         } else {
           console.error('Failed to fetch blandare');
         }

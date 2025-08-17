@@ -17,17 +17,23 @@ export async function GET(req: NextRequest) {
         const bucket = storage.bucket("mottagningen-7063b.appspot.com");
         const [files] = await bucket.getFiles({ prefix: 'blandare/' });
 
-        // Extract unique subfolder names
-        const subfolders = Array.from(
-            new Set(
-                files
-                    .map(file => {
-                        const match = file.name.match(/^blandare\/([^/]+)\//);
-                        return match ? match[1] : null;
-                    })
-                    .filter(Boolean)
-            )
-        );
+        // Extract unique subfolder names with their creation times
+        const folderMap = new Map();
+        files.forEach(file => {
+            const match = file.name.match(/^blandare\/([^/]+)\//);
+            if (match && file.metadata.timeCreated) {
+                const folderName = match[1];
+                const creationTime = file.metadata.timeCreated;
+                if (!folderMap.has(folderName) || creationTime < folderMap.get(folderName)) {
+                    folderMap.set(folderName, creationTime);
+                }
+            }
+        });
+
+        // Sort folders by creation time (oldest first)
+        const subfolders = Array.from(folderMap.entries())
+            .sort((a, b) => new Date(a[1]).getTime() - new Date(b[1]).getTime())
+            .map(entry => entry[0]);
 
         // For each subfolder, get all images and their signed URLs
         const allImages: string[][] = [];
