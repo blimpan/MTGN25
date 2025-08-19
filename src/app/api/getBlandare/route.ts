@@ -36,9 +36,25 @@ export async function GET(req: NextRequest) {
             .map(entry => entry[0]);
 
         // For each subfolder, get all images and their signed URLs
-        const allImages: string[][] = [];
+        const blandareDetails: any[] = [];
         for (const folder of subfolders) {
             const [imageFiles] = await bucket.getFiles({ prefix: `blandare/${folder}/` });
+            
+            // Try to read metadata file for display name
+            let displayName = folder; // Default to folder name
+            try {
+                const metadataFile = bucket.file(`blandare/${folder}/metadata.json`);
+                const [exists] = await metadataFile.exists();
+                if (exists) {
+                    const [metadataContent] = await metadataFile.download();
+                    const metadata = JSON.parse(metadataContent.toString());
+                    displayName = metadata.displayName || folder;
+                }
+            } catch (error) {
+                console.log('No metadata found for folder:', folder);
+                // Use folder name as fallback
+            }
+            
             const imageUrls = await Promise.all(
                 imageFiles
                     .filter(f => f.name.match(/\.(png|jpg|jpeg)$/i))
@@ -52,11 +68,22 @@ export async function GET(req: NextRequest) {
                     })
             );
             if (imageUrls.length > 0) {
-                allImages.push(imageUrls);
+                blandareDetails.push({
+                    name: folder,
+                    displayName: displayName,
+                    images: imageUrls,
+                    timeCreated: folderMap.get(folder)
+                });
             }
         }
 
-        return NextResponse.json(allImages);
+        // For backward compatibility, also return the old format
+        const allImages = blandareDetails.map(item => item.images);
+
+        return NextResponse.json({ 
+            blandare: blandareDetails,  // New detailed format
+            allImages: allImages        // Old format for compatibility
+        });
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }

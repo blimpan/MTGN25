@@ -1628,7 +1628,7 @@ const AdminPanel = () => {
         {manageAdminError && <p className="text-red-500 text-sm mt-4">{manageAdminError}</p>}
         {manageAdminSuccess && <p className="text-green-500 text-sm mt-4">{manageAdminSuccess}</p>}
       </div>
-      {/*Upload Blandare*/}
+      {/* Manage Bländare */}
       <AdminUploadPDF/>
     </main>
   );
