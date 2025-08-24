@@ -52,7 +52,7 @@ export default function EventsList({
   };
 
   return (
-    <div className="w-full max-w-xl bg-white rounded-lg shadow-md p-6">
+    <div className="w-full max-w-4xl bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold">Manage Events</h2>
         <button
