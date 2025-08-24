@@ -31,7 +31,10 @@ export async function POST(req: NextRequest) {
     // Accept multiple images[]
     const images: File[] = [];
     const pdfNameRaw = formData.get('pdfName');
+    const displayNameRaw = formData.get('displayName');
     let pdfName = typeof pdfNameRaw === 'string' ? pdfNameRaw : 'unknown_pdf';
+    let displayName = typeof displayNameRaw === 'string' ? displayNameRaw : '';
+    
     for (const entry of Array.from(formData.entries())) {
       const [key, value] = entry;
       if (key === 'images[]' && value instanceof File) {
@@ -42,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No images uploaded' }, { status: 400 });
     }
 
-    // Sanitize pdfName
+    // Sanitize pdfName for folder name
     pdfName = pdfName.replace(/\s+/g, '_').replace(/å|ä/gi, 'a').replace(/ö/gi, 'o').replace(/[^a-zA-Z0-9_.-]/g, '');
 
     // Check if subfolder already exists
@@ -71,6 +74,23 @@ export async function POST(req: NextRequest) {
         resumable: false,
       });
       uploaded.push(dest);
+    }
+
+    // Store display name metadata if provided
+    if (displayName) {
+      const metadataFile = bucket.file(`blandare/${pdfName}/metadata.json`);
+      const metadata = {
+        displayName,
+        pdfName,
+        createdAt: new Date().toISOString(),
+        uploadedBy: decodedToken.uid
+      };
+      await metadataFile.save(JSON.stringify(metadata), {
+        metadata: {
+          contentType: 'application/json',
+        },
+        resumable: false,
+      });
     }
 
     return NextResponse.json({ success: true, uploaded }, {
