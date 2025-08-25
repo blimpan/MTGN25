@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../useAuth';
 import EventsList from './EventsList';
-import EditEventModal from './EditEventModal';
 
 interface Event {
   id: string;
@@ -26,7 +25,6 @@ export default function ManageEvents({ refreshTrigger }: ManageEventsProps) {
   const [eventsLoading, setEventsLoading] = useState(false);
   const [manageEventError, setManageEventError] = useState('');
   const [manageEventSuccess, setManageEventSuccess] = useState('');
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   const fetchEvents = async () => {
     if (!user) return;
@@ -89,36 +87,26 @@ export default function ManageEvents({ refreshTrigger }: ManageEventsProps) {
     }
   };
 
+  // Dummy function for compatibility - inline editing handles this internally
   const handleEditEvent = (event: Event) => {
-    setEditingEvent(event);
+    // This is now handled within EventsList component
   };
 
-  const handleCloseEditModal = () => {
-    setEditingEvent(null);
-  };
-
-  const handleEventUpdated = () => {
-    fetchEvents();
-  };
-
-  const handleEditSuccess = (message: string) => {
-    setManageEventSuccess(message);
+  const handleUpdateEvent = (eventId: string, data: any) => {
+    // This is handled within EventsList component, but we can add success handling here
+    setManageEventSuccess('Event updated successfully!');
     setManageEventError('');
   };
 
-  const handleEditError = (message: string) => {
-    setManageEventError(message);
-    setManageEventSuccess('');
-  };
-
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-xl space-y-4">
       <EventsList
         events={events}
         loading={eventsLoading}
         onRefresh={fetchEvents}
         onEdit={handleEditEvent}
         onDelete={handleDeleteEvent}
+        onUpdate={handleUpdateEvent}
       />
 
       {/* Success/Error messages */}
@@ -131,17 +119,6 @@ export default function ManageEvents({ refreshTrigger }: ManageEventsProps) {
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
           {manageEventSuccess}
         </div>
-      )}
-
-      {/* Edit Event Modal */}
-      {editingEvent && (
-        <EditEventModal
-          event={editingEvent}
-          onClose={handleCloseEditModal}
-          onSuccess={handleEditSuccess}
-          onError={handleEditError}
-          onEventUpdated={handleEventUpdated}
-        />
       )}
     </div>
   );
