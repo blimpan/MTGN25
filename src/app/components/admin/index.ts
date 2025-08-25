@@ -10,5 +10,4 @@ export { default as ManageBlandare } from './ManageBlandare';
 
 // Export sub-components (optional - for direct use if needed)
 export { default as ImageCropper } from './ImageCropper';
-export { default as EditEventModal } from './EditEventModal';
 export { default as EventsList } from './EventsList';
